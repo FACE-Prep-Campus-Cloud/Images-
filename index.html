@@ -58,6 +58,18 @@
   .status-pill.loading .dot{background:var(--gold);box-shadow:0 0 0 3px rgba(201,122,36,.18);animation:pulse 1.1s ease-in-out infinite;}
   @keyframes pulse{0%,100%{opacity:1;}50%{opacity:.35;}}
 
+  /* ---------- Toast ---------- */
+  #toast{
+    position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(120%);
+    background:var(--text);color:#fff;padding:12px 20px;border-radius:10px;font-size:13px;
+    box-shadow:0 10px 30px rgba(22,29,38,.25);z-index:200;transition:transform .25s ease;
+    display:flex;align-items:center;gap:10px;
+  }
+  #toast.show{transform:translateX(-50%) translateY(0);}
+  #toast.err{background:var(--red);}
+  #toast .dotok{width:7px;height:7px;border-radius:50%;background:var(--green);flex-shrink:0;}
+  #toast.err .dotok{background:#fff;}
+
   /* ---------- Error banner ---------- */
   #errorBanner{
     display:none;background:#FCEEEC;border:1px solid #F0C6C1;color:var(--red);
@@ -133,27 +145,47 @@
   .badge.pending{background:rgba(103,112,124,.13);color:var(--muted);}
   .badge.arrears{background:rgba(199,67,58,.13);color:var(--red);font-weight:600;margin-left:6px;}
 
-  /* ---------- Student detail modal ---------- */
+  .row-edit-btn{
+    background:var(--panel-2);border:1px solid var(--line);color:var(--text);
+    padding:6px 12px;border-radius:7px;font-size:12px;cursor:pointer;font-family:inherit;font-weight:600;
+    white-space:nowrap;
+  }
+  .row-edit-btn:hover{background:var(--line);}
+
+  /* ---------- Student detail / edit modal ---------- */
   #modalOverlay{
     display:none;position:fixed;inset:0;background:rgba(22,29,38,.45);
     align-items:center;justify-content:center;z-index:100;padding:20px;
   }
   #modalOverlay.open{display:flex;}
   #modalCard{
-    background:var(--panel);border-radius:14px;max-width:560px;width:100%;
-    max-height:86vh;overflow-y:auto;box-shadow:0 20px 60px rgba(22,29,38,.25);
+    background:var(--panel);border-radius:14px;max-width:640px;width:100%;
+    max-height:88vh;overflow-y:auto;box-shadow:0 20px 60px rgba(22,29,38,.25);
   }
   .modal-head{
     padding:22px 26px 16px;border-bottom:1px solid var(--line);
     display:flex;justify-content:space-between;align-items:flex-start;gap:12px;
+    position:sticky;top:0;background:var(--panel);z-index:2;
   }
   .modal-head h3{font-size:19px;font-weight:600;}
   .modal-head .modal-sub{color:var(--muted);font-size:12.5px;margin-top:4px;font-family:'IBM Plex Mono',monospace;}
+  .modal-head-actions{display:flex;gap:8px;align-items:center;flex-shrink:0;}
   #modalClose{
     background:var(--panel-2);border:none;width:30px;height:30px;border-radius:50%;
     color:var(--muted);font-size:16px;cursor:pointer;flex-shrink:0;line-height:1;
   }
   #modalClose:hover{background:var(--line);color:var(--text);}
+  .btn{
+    border:none;border-radius:8px;padding:9px 16px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;
+  }
+  .btn-edit{background:var(--text);color:#fff;}
+  .btn-edit:hover{background:#2b3542;}
+  .btn-save{background:var(--teal);color:#fff;}
+  .btn-save:hover{background:#157068;}
+  .btn-save:disabled{opacity:.6;cursor:wait;}
+  .btn-cancel{background:var(--panel-2);color:var(--text);border:1px solid var(--line);}
+  .btn-cancel:hover{background:var(--line);}
+
   .modal-body{padding:20px 26px 26px;}
   .modal-section{margin-bottom:20px;}
   .modal-section:last-child{margin-bottom:0;}
@@ -162,10 +194,21 @@
     font-weight:600;margin-bottom:10px;
   }
   .modal-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px 20px;}
+  .modal-grid.cols-3{grid-template-columns:1fr 1fr 1fr;}
   .modal-field{}
-  .modal-field .f-label{font-size:11.5px;color:var(--muted);margin-bottom:2px;}
+  .modal-field .f-label{font-size:11.5px;color:var(--muted);margin-bottom:4px;}
   .modal-field .f-value{font-size:14px;font-weight:600;}
   .modal-field .f-value.mono{font-family:'IBM Plex Mono',monospace;font-weight:500;}
+  .modal-field input, .modal-field select{
+    display:none;width:100%;padding:8px 10px;border:1px solid var(--line);border-radius:7px;
+    font-family:inherit;font-size:13px;background:var(--panel-2);color:var(--text);
+  }
+  #modalCard.editing .f-value{display:none;}
+  #modalCard.editing .modal-field input, #modalCard.editing .modal-field select{display:block;}
+  #modalCard.editing .modal-link-row{display:none;}
+  #modalCard:not(.editing) .btn-save, #modalCard:not(.editing) .btn-cancel{display:none;}
+  #modalCard.editing .btn-edit{display:none;}
+
   .modal-links{display:flex;flex-direction:column;gap:8px;}
   .modal-link{
     display:flex;align-items:center;gap:8px;padding:10px 12px;background:var(--panel-2);
@@ -177,6 +220,12 @@
     background:var(--panel);padding:2px 7px;border-radius:5px;font-weight:600;
   }
   .modal-link.unavailable{color:var(--muted);font-style:italic;}
+
+  .modal-save-error{
+    display:none;background:#FCEEEC;border:1px solid #F0C6C1;color:var(--red);
+    border-radius:8px;padding:10px 14px;font-size:12.5px;margin-top:14px;line-height:1.5;
+  }
+  .modal-save-error.open{display:block;}
 
   /* Lane bar — signature element: score lane with pass-threshold tick */
   .lane{width:120px;}
@@ -265,10 +314,11 @@
         <th>Aptitude</th>
         <th>HIRE Overall</th>
         <th>FPC NQT Overall</th>
+        <th></th>
       </tr>
     </thead>
     <tbody id="tableBody">
-      <tr class="loading-row"><td colspan="8">Loading students from Supabase…</td></tr>
+      <tr class="loading-row"><td colspan="9">Loading students from Supabase…</td></tr>
     </tbody>
   </table>
 </div>
@@ -282,44 +332,207 @@
         <h3 id="modalName">—</h3>
         <div class="modal-sub" id="modalSub">—</div>
       </div>
-      <button id="modalClose" onclick="closeModal()">✕</button>
+      <div class="modal-head-actions">
+        <button class="btn btn-edit" id="btnEdit" onclick="enterEditMode()">Edit</button>
+        <button class="btn btn-save" id="btnSave" onclick="saveEdit()">Save changes</button>
+        <button class="btn btn-cancel" id="btnCancel" onclick="cancelEdit()">Cancel</button>
+        <button id="modalClose" onclick="closeModal()">✕</button>
+      </div>
     </div>
     <div class="modal-body">
+
+      <div class="modal-section">
+        <div class="modal-section-label">Profile</div>
+        <div class="modal-grid">
+          <div class="modal-field">
+            <div class="f-label">Full name</div>
+            <div class="f-value" id="mName">—</div>
+            <input type="text" id="eName">
+          </div>
+          <div class="modal-field">
+            <div class="f-label">Department</div>
+            <div class="f-value" id="mDept">—</div>
+            <input type="text" id="eDept">
+          </div>
+          <div class="modal-field">
+            <div class="f-label">Email ID</div>
+            <div class="f-value mono" id="mEmail">—</div>
+            <input type="text" id="eEmail">
+          </div>
+          <div class="modal-field">
+            <div class="f-label">Registration number</div>
+            <div class="f-value mono" id="mRegNo">—</div>
+          </div>
+        </div>
+      </div>
+
       <div class="modal-section">
         <div class="modal-section-label">Eligibility &amp; academics</div>
         <div class="modal-grid">
-          <div class="modal-field"><div class="f-label">Eligibility status</div><div class="f-value" id="mEligibility">—</div></div>
-          <div class="modal-field"><div class="f-label">Current arrears / history</div><div class="f-value" id="mArrears">—</div></div>
-          <div class="modal-field"><div class="f-label">10th mark</div><div class="f-value" id="mTenth">—</div></div>
-          <div class="modal-field"><div class="f-label">12th mark</div><div class="f-value" id="mTwelfth">—</div></div>
-          <div class="modal-field"><div class="f-label">UG degree %</div><div class="f-value" id="mUg">—</div></div>
-          <div class="modal-field"><div class="f-label">PG degree %</div><div class="f-value" id="mPg">—</div></div>
+          <div class="modal-field">
+            <div class="f-label">Eligibility status</div>
+            <div class="f-value" id="mEligibility">—</div>
+            <select id="eEligibility">
+              <option value="">Pending / not set</option>
+              <option value="Eligible">Eligible</option>
+            </select>
+          </div>
+          <div class="modal-field">
+            <div class="f-label">Communication level</div>
+            <div class="f-value" id="mCommLevel">—</div>
+            <input type="text" id="eCommLevel" placeholder="e.g. B1(Intermediate)">
+          </div>
+          <div class="modal-field">
+            <div class="f-label">Current arrears</div>
+            <div class="f-value" id="mCurrentArrears">—</div>
+            <input type="number" id="eCurrentArrears" min="0" step="1">
+          </div>
+          <div class="modal-field">
+            <div class="f-label">History of arrears</div>
+            <div class="f-value" id="mHistoryArrears">—</div>
+            <input type="number" id="eHistoryArrears" min="0" step="1">
+          </div>
+          <div class="modal-field">
+            <div class="f-label">10th mark</div>
+            <div class="f-value" id="mTenth">—</div>
+            <input type="number" id="eTenth" min="0" max="100" step="0.01">
+          </div>
+          <div class="modal-field">
+            <div class="f-label">12th mark</div>
+            <div class="f-value" id="mTwelfth">—</div>
+            <input type="number" id="eTwelfth" min="0" max="100" step="0.01">
+          </div>
+          <div class="modal-field">
+            <div class="f-label">UG degree %</div>
+            <div class="f-value" id="mUg">—</div>
+            <input type="number" id="eUg" min="0" max="100" step="0.01">
+          </div>
+          <div class="modal-field">
+            <div class="f-label">PG degree %</div>
+            <div class="f-value" id="mPg">—</div>
+            <input type="number" id="ePg" min="0" max="100" step="0.01">
+          </div>
         </div>
       </div>
+
       <div class="modal-section">
-        <div class="modal-section-label">Contact</div>
-        <div class="modal-grid">
-          <div class="modal-field"><div class="f-label">Email ID</div><div class="f-value mono" id="mEmail">—</div></div>
-          <div class="modal-field"><div class="f-label">Registration number</div><div class="f-value mono" id="mRegNo">—</div></div>
+        <div class="modal-section-label">HIRE Score %</div>
+        <div class="modal-grid cols-3">
+          <div class="modal-field">
+            <div class="f-label">FOP</div>
+            <div class="f-value" id="mFop">—</div>
+            <input type="number" id="eFop" min="0" max="100" step="0.01">
+          </div>
+          <div class="modal-field">
+            <div class="f-label">DSA</div>
+            <div class="f-value" id="mDsa">—</div>
+            <input type="number" id="eDsa" min="0" max="100" step="0.01">
+          </div>
+          <div class="modal-field">
+            <div class="f-label">Aptitude</div>
+            <div class="f-value" id="mAptitude">—</div>
+            <input type="number" id="eAptitude" min="0" max="100" step="0.01">
+          </div>
+          <div class="modal-field">
+            <div class="f-label">Overall</div>
+            <div class="f-value" id="mHireOverall">—</div>
+            <input type="number" id="eHireOverall" min="0" max="100" step="0.01">
+          </div>
         </div>
       </div>
+
+      <div class="modal-section">
+        <div class="modal-section-label">FPC NQT Assessment</div>
+        <div class="modal-grid cols-3">
+          <div class="modal-field">
+            <div class="f-label">Assessments conducted</div>
+            <div class="f-value" id="mNqtCount">—</div>
+            <input type="number" id="eNqtCount" min="0" step="1">
+          </div>
+          <div class="modal-field">
+            <div class="f-label">Verbal ability</div>
+            <div class="f-value" id="mVerbal">—</div>
+            <input type="number" id="eVerbal" min="0" max="100" step="0.01">
+          </div>
+          <div class="modal-field">
+            <div class="f-label">Numerical ability</div>
+            <div class="f-value" id="mNumerical">—</div>
+            <input type="number" id="eNumerical" min="0" max="100" step="0.01">
+          </div>
+          <div class="modal-field">
+            <div class="f-label">Reasoning ability</div>
+            <div class="f-value" id="mReasoning">—</div>
+            <input type="number" id="eReasoning" min="0" max="100" step="0.01">
+          </div>
+          <div class="modal-field">
+            <div class="f-label">Adv. quant reasoning</div>
+            <div class="f-value" id="mAdvQuant">—</div>
+            <input type="number" id="eAdvQuant" min="0" max="100" step="0.01">
+          </div>
+          <div class="modal-field">
+            <div class="f-label">Coding</div>
+            <div class="f-value" id="mCoding">—</div>
+            <input type="number" id="eCoding" min="0" max="100" step="0.01">
+          </div>
+          <div class="modal-field">
+            <div class="f-label">Overall</div>
+            <div class="f-value" id="mNqtOverall">—</div>
+            <input type="number" id="eNqtOverall" min="0" max="100" step="0.01">
+          </div>
+        </div>
+      </div>
+
       <div class="modal-section">
         <div class="modal-section-label">Profile links</div>
         <div class="modal-links" id="mLinks"></div>
+        <div class="modal-grid" style="margin-top:12px;">
+          <div class="modal-field">
+            <div class="f-label">LinkedIn URL</div>
+            <input type="text" id="eLinkedin" placeholder="https://…">
+          </div>
+          <div class="modal-field">
+            <div class="f-label">Resume URL</div>
+            <input type="text" id="eResume" placeholder="https://…">
+          </div>
+          <div class="modal-field">
+            <div class="f-label">GitHub URL</div>
+            <input type="text" id="eGithub" placeholder="https://…">
+          </div>
+          <div class="modal-field">
+            <div class="f-label">EF SET certificate URL</div>
+            <input type="text" id="eEfset" placeholder="https://…">
+          </div>
+        </div>
       </div>
+
+      <div class="modal-save-error" id="modalSaveError"></div>
     </div>
   </div>
 </div>
 
+<div id="toast"><span class="dotok"></span><span id="toastText"></span></div>
+
 <script>
 /* ============================================================
-   Supabase connection — reads directly from student_monitor_view
+   Supabase connection — reads from student_monitor_view,
+   writes go directly to students / hire_scores / fpc_nqt_assessment
    ============================================================ */
 const SUPABASE_URL = 'https://rfzhifhvtopdayhaiuct.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJmemhpZmh2dG9wZGF5aGFpdWN0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQ4ODEyNzYsImV4cCI6MjEwMDQ1NzI3Nn0.X3vTyKA0f--0lQ4_CreXDAMVSHcvOBiWxFAVi2sGHmw';
 
 let STUDENTS = [];
 let hireChartInstance = null;
+let currentEditRegNo = null;
+
+function sbHeaders(extraPrefer){
+  const h = {
+    apikey: SUPABASE_ANON_KEY,
+    Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+    'Content-Type': 'application/json'
+  };
+  if(extraPrefer) h['Prefer'] = extraPrefer;
+  return h;
+}
 
 function setStatus(state, label){
   const pill = document.getElementById('statusPill');
@@ -331,7 +544,16 @@ function setStatus(state, label){
 function showError(message){
   document.getElementById('errorBanner').classList.add('open');
   document.getElementById('errorDetail').textContent = message;
-  document.getElementById('tableBody').innerHTML = `<tr class="loading-row"><td colspan="8">No data to display.</td></tr>`;
+  document.getElementById('tableBody').innerHTML = `<tr class="loading-row"><td colspan="9">No data to display.</td></tr>`;
+}
+
+function showToast(message, isError){
+  const t = document.getElementById('toast');
+  document.getElementById('toastText').textContent = message;
+  t.classList.toggle('err', !!isError);
+  t.classList.add('show');
+  clearTimeout(showToast._timer);
+  showToast._timer = setTimeout(()=> t.classList.remove('show'), 3800);
 }
 
 async function loadStudents(){
@@ -349,6 +571,7 @@ async function loadStudents(){
       throw new Error('Query succeeded but returned no rows — check that student_monitor_view exists and RLS allows anon SELECT.');
     }
     STUDENTS = rows;
+    document.getElementById('errorBanner').classList.remove('open');
     setStatus('live', 'Live · connected to Supabase');
     renderAll();
   }catch(e){
@@ -424,7 +647,7 @@ function renderNqtPanel(){
       <div class="empty-state">
         <div class="ring">◌</div>
         <strong>No FPC NQT scores recorded yet</strong>
-        <p>Verbal, Numerical, Reasoning, Advanced Quant &amp; Coding averages will populate this panel as soon as an assessment round is entered in <span class="mono">fpc_nqt_assessment</span>.</p>
+        <p>Verbal, Numerical, Reasoning, Advanced Quant &amp; Coding averages will populate this panel as soon as an assessment round is entered — use the Edit button on any student to record one.</p>
       </div>`;
     return;
   }
@@ -468,7 +691,9 @@ function laneBar(value, colorClass){
 function populateFilters(){
   const depts = [...new Set(STUDENTS.map(s=>s.department).filter(Boolean))];
   const sel = document.getElementById('deptFilter');
+  const prev = sel.value;
   sel.innerHTML = '<option value="">All departments</option>' + depts.map(d=>`<option value="${d}">${d}</option>`).join('');
+  sel.value = prev;
 }
 
 function renderTable(){
@@ -512,6 +737,7 @@ function renderTable(){
       <td>${laneBar(s.hire_aptitude)}</td>
       <td>${laneBar(s.hire_overall)}</td>
       <td>${laneBar(s.nqt_overall,'teal')}</td>
+      <td><button class="row-edit-btn" onclick="openModal('${s.registration_number}', true)">Edit</button></td>
     </tr>`;
   }).join('');
 }
@@ -524,48 +750,210 @@ function renderAll(){
   renderTable();
 }
 
-/* ---------------- Student detail modal ---------------- */
+/* ---------------- Student detail / edit modal ---------------- */
 function pctText(v){
   const n = fmt(v);
   return n===null ? '—' : `${n}%`;
+}
+function numText(v){
+  const n = fmt(v);
+  return n===null ? '—' : `${n}`;
 }
 
 function linkRow(tag, url){
   const valid = url && /^https?:\/\//i.test(url.trim());
   if(!valid){
-    return `<div class="modal-link unavailable"><span class="link-tag">${tag}</span> ${url ? url : 'Not provided'}</div>`;
+    return `<div class="modal-link unavailable modal-link-row"><span class="link-tag">${tag}</span> ${url ? url : 'Not provided'}</div>`;
   }
-  return `<a class="modal-link" href="${url}" target="_blank" rel="noopener"><span class="link-tag">${tag}</span> ${url}</a>`;
+  return `<a class="modal-link modal-link-row" href="${url}" target="_blank" rel="noopener"><span class="link-tag">${tag}</span> ${url}</a>`;
 }
 
-function openModal(regNo){
+function setInputVal(id, v){ document.getElementById(id).value = (v===null || v===undefined) ? '' : v; }
+
+function openModal(regNo, startInEdit){
   const s = STUDENTS.find(x => x.registration_number === regNo);
   if(!s) return;
+  currentEditRegNo = regNo;
   const isEligible = s.eligibility_status && s.eligibility_status.toLowerCase()==='eligible';
 
   document.getElementById('modalName').textContent = s.student_name;
   document.getElementById('modalSub').textContent = `${s.registration_number || '—'} · ${s.department || '—'}`;
-  document.getElementById('mEligibility').innerHTML =
-    `<span class="badge ${isEligible?'eligible':'pending'}">${s.eligibility_status || 'Pending review'}</span>`;
-  document.getElementById('mArrears').textContent =
-    `${s.current_arrears ?? 0} current · ${s.history_of_arrears ?? 0} historical`;
+
+  // view values
+  document.getElementById('mName').textContent = s.student_name || '—';
+  document.getElementById('mDept').textContent = s.department || '—';
+  document.getElementById('mEmail').textContent = s.email || '—';
+  document.getElementById('mRegNo').textContent = s.registration_number || '—';
+  document.getElementById('mEligibility').innerHTML = `<span class="badge ${isEligible?'eligible':'pending'}">${s.eligibility_status || 'Pending review'}</span>`;
+  document.getElementById('mCommLevel').textContent = s.communication_skill_level || '—';
+  document.getElementById('mCurrentArrears').textContent = numText(s.current_arrears);
+  document.getElementById('mHistoryArrears').textContent = numText(s.history_of_arrears);
   document.getElementById('mTenth').textContent = pctText(s.tenth_mark);
   document.getElementById('mTwelfth').textContent = pctText(s.twelfth_mark);
   document.getElementById('mUg').textContent = pctText(s.ug_percentage);
   document.getElementById('mPg').textContent = pctText(s.pg_percentage);
-  document.getElementById('mEmail').textContent = s.email || '—';
-  document.getElementById('mRegNo').textContent = s.registration_number || '—';
+  document.getElementById('mFop').textContent = pctText(s.hire_fop);
+  document.getElementById('mDsa').textContent = pctText(s.hire_dsa);
+  document.getElementById('mAptitude').textContent = pctText(s.hire_aptitude);
+  document.getElementById('mHireOverall').textContent = pctText(s.hire_overall);
+  document.getElementById('mNqtCount').textContent = numText(s.nqt_assessment_count);
+  document.getElementById('mVerbal').textContent = pctText(s.nqt_verbal_ability);
+  document.getElementById('mNumerical').textContent = pctText(s.nqt_numerical_ability);
+  document.getElementById('mReasoning').textContent = pctText(s.nqt_reasoning_ability);
+  document.getElementById('mAdvQuant').textContent = pctText(s.nqt_advanced_quant_reasoning);
+  document.getElementById('mCoding').textContent = pctText(s.nqt_coding);
+  document.getElementById('mNqtOverall').textContent = pctText(s.nqt_overall);
 
   document.getElementById('mLinks').innerHTML =
     linkRow('LinkedIn', s.linkedin_url) +
     linkRow('Resume', s.resume_url) +
     linkRow('GitHub', s.github_url);
 
+  // edit inputs (pre-filled so Edit can be clicked at any time)
+  setInputVal('eName', s.student_name);
+  setInputVal('eDept', s.department);
+  setInputVal('eEmail', s.email);
+  setInputVal('eEligibility', isEligible ? 'Eligible' : '');
+  setInputVal('eCommLevel', s.communication_skill_level);
+  setInputVal('eCurrentArrears', s.current_arrears ?? 0);
+  setInputVal('eHistoryArrears', s.history_of_arrears ?? 0);
+  setInputVal('eTenth', s.tenth_mark);
+  setInputVal('eTwelfth', s.twelfth_mark);
+  setInputVal('eUg', s.ug_percentage);
+  setInputVal('ePg', s.pg_percentage);
+  setInputVal('eFop', s.hire_fop);
+  setInputVal('eDsa', s.hire_dsa);
+  setInputVal('eAptitude', s.hire_aptitude);
+  setInputVal('eHireOverall', s.hire_overall);
+  setInputVal('eNqtCount', s.nqt_assessment_count);
+  setInputVal('eVerbal', s.nqt_verbal_ability);
+  setInputVal('eNumerical', s.nqt_numerical_ability);
+  setInputVal('eReasoning', s.nqt_reasoning_ability);
+  setInputVal('eAdvQuant', s.nqt_advanced_quant_reasoning);
+  setInputVal('eCoding', s.nqt_coding);
+  setInputVal('eNqtOverall', s.nqt_overall);
+  setInputVal('eLinkedin', s.linkedin_url);
+  setInputVal('eResume', s.resume_url);
+  setInputVal('eGithub', s.github_url);
+  setInputVal('eEfset', s.efset_certificate_url);
+
+  document.getElementById('modalSaveError').classList.remove('open');
+  document.getElementById('modalCard').classList.toggle('editing', !!startInEdit);
   document.getElementById('modalOverlay').classList.add('open');
 }
 
 function closeModal(){
   document.getElementById('modalOverlay').classList.remove('open');
+  document.getElementById('modalCard').classList.remove('editing');
+  currentEditRegNo = null;
+}
+
+function enterEditMode(){
+  document.getElementById('modalCard').classList.add('editing');
+}
+function cancelEdit(){
+  // just re-open to reset input values back to current data, staying in view mode
+  const regNo = currentEditRegNo;
+  document.getElementById('modalCard').classList.remove('editing');
+  openModal(regNo, false);
+}
+
+function numVal(id){
+  const raw = document.getElementById(id).value;
+  return raw === '' ? null : Number(raw);
+}
+function intVal(id){
+  const raw = document.getElementById(id).value;
+  return raw === '' ? 0 : parseInt(raw, 10);
+}
+function textVal(id){
+  const raw = document.getElementById(id).value.trim();
+  return raw === '' ? null : raw;
+}
+
+async function saveEdit(){
+  const s = STUDENTS.find(x => x.registration_number === currentEditRegNo);
+  if(!s) return;
+
+  const btn = document.getElementById('btnSave');
+  const errBox = document.getElementById('modalSaveError');
+  errBox.classList.remove('open');
+  btn.disabled = true;
+  btn.textContent = 'Saving…';
+
+  try{
+    // 1) students table
+    const studentsPayload = {
+      student_name: textVal('eName') || s.student_name,
+      department: textVal('eDept'),
+      email: textVal('eEmail'),
+      eligibility_status: textVal('eEligibility'),
+      communication_skill_level: textVal('eCommLevel'),
+      current_arrears: intVal('eCurrentArrears'),
+      history_of_arrears: intVal('eHistoryArrears'),
+      tenth_mark: numVal('eTenth'),
+      twelfth_mark: numVal('eTwelfth'),
+      ug_percentage: numVal('eUg'),
+      pg_percentage: numVal('ePg'),
+      linkedin_url: textVal('eLinkedin'),
+      resume_url: textVal('eResume'),
+      github_url: textVal('eGithub'),
+      efset_certificate_url: textVal('eEfset')
+    };
+    const r1 = await fetch(`${SUPABASE_URL}/rest/v1/students?id=eq.${s.id}`, {
+      method: 'PATCH',
+      headers: sbHeaders('return=representation'),
+      body: JSON.stringify(studentsPayload)
+    });
+    if(!r1.ok) throw new Error(`students update failed (${r1.status}): ${await r1.text()}`);
+
+    // 2) hire_scores — upsert on (student_id, assessment_date)
+    const hireDate = s.hire_assessment_date || new Date().toISOString().slice(0,10);
+    const hirePayload = {
+      student_id: s.id,
+      assessment_date: hireDate,
+      fop: numVal('eFop'),
+      dsa: numVal('eDsa'),
+      aptitude: numVal('eAptitude'),
+      overall: numVal('eHireOverall')
+    };
+    const r2 = await fetch(`${SUPABASE_URL}/rest/v1/hire_scores?on_conflict=student_id,assessment_date`, {
+      method: 'POST',
+      headers: sbHeaders('resolution=merge-duplicates,return=representation'),
+      body: JSON.stringify(hirePayload)
+    });
+    if(!r2.ok) throw new Error(`hire_scores update failed (${r2.status}): ${await r2.text()}`);
+
+    // 3) fpc_nqt_assessment — upsert on (student_id)
+    const nqtPayload = {
+      student_id: s.id,
+      assessment_count: numVal('eNqtCount'),
+      verbal_ability: numVal('eVerbal'),
+      numerical_ability: numVal('eNumerical'),
+      reasoning_ability: numVal('eReasoning'),
+      advanced_quant_reasoning: numVal('eAdvQuant'),
+      coding: numVal('eCoding'),
+      overall: numVal('eNqtOverall')
+    };
+    const r3 = await fetch(`${SUPABASE_URL}/rest/v1/fpc_nqt_assessment?on_conflict=student_id`, {
+      method: 'POST',
+      headers: sbHeaders('resolution=merge-duplicates,return=representation'),
+      body: JSON.stringify(nqtPayload)
+    });
+    if(!r3.ok) throw new Error(`fpc_nqt_assessment update failed (${r3.status}): ${await r3.text()}`);
+
+    await loadStudents();
+    closeModal();
+    showToast('Saved — dashboard updated.', false);
+
+  }catch(e){
+    errBox.textContent = e.message + ' — if this mentions row-level security / permission denied, the anon key currently isn\'t allowed to write; see the RLS note provided alongside this dashboard.';
+    errBox.classList.add('open');
+    showToast('Save failed. See details in the panel.', true);
+  }finally{
+    btn.disabled = false;
+    btn.textContent = 'Save changes';
+  }
 }
 
 document.addEventListener('keydown', (e) => { if(e.key === 'Escape') closeModal(); });
