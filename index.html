@@ -5,203 +5,270 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>FPC Placement Readiness Monitor · 2026-2027</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
 <style>
   :root{
-    --bg:#FFFFFF;
-    --panel:#FFFFFF;
-    --panel-2:#F4F6F8;
-    --line:#E2E6EB;
-    --text:#161D26;
-    --muted:#67707C;
-    --gold:#C97A24;
-    --gold-dim:#F3E1C6;
-    --teal:#1B8E86;
-    --teal-dim:#DCF0EE;
-    --red:#C7433A;
-    --green:#2E9155;
-    --radius:10px;
+    --bg-top:#EEF4CF;
+    --bg-bottom:#FBFCF4;
+    --card:#FFFFFF;
+    --card-soft:#F7F9EC;
+    --line:#E8ECD6;
+    --ink:#1C2116;
+    --ink-soft:#6E7660;
+    --lime:#C7DE3E;
+    --lime-deep:#9CB52A;
+    --olive:#5C6B32;
+    --olive-deep:#3B4522;
+    --gold:#D98A3D;
+    --gold-dim:#F7E6CE;
+    --red:#C6493E;
+    --red-dim:#FAE1DD;
+    --green:#4C8B4A;
+    --green-dim:#E3F0DE;
+    --radius-xl:26px;
+    --radius-lg:18px;
+    --radius-md:12px;
+    --shadow: 0 2px 4px rgba(59,69,34,.05), 0 14px 34px -18px rgba(59,69,34,.25);
   }
   *{box-sizing:border-box;}
   html,body{margin:0;padding:0;}
   body{
     background:
-      radial-gradient(1100px 500px at 85% -10%, #F6F8FA 0%, transparent 60%),
-      var(--bg);
-    color:var(--text);
+      radial-gradient(1200px 620px at 18% -12%, var(--bg-top) 0%, transparent 62%),
+      radial-gradient(900px 500px at 100% 0%, #F1F6DC 0%, transparent 55%),
+      var(--bg-bottom);
+    color:var(--ink);
     font-family:'Inter',system-ui,sans-serif;
     -webkit-font-smoothing:antialiased;
-    padding:32px clamp(16px,4vw,56px) 80px;
+    padding:22px clamp(16px,3.4vw,44px) 70px;
+    min-height:100vh;
   }
   h1,h2,h3{font-family:'Space Grotesk',sans-serif;margin:0;}
   .mono{font-family:'IBM Plex Mono',monospace;}
 
-  /* ---------- Header ---------- */
-  header{
-    display:flex;justify-content:space-between;align-items:flex-start;
-    gap:24px;flex-wrap:wrap;margin-bottom:28px;
+  /* ---------- Top nav ---------- */
+  .topnav{
+    display:flex;align-items:center;justify-content:space-between;gap:16px;
+    background:var(--card);border:1px solid var(--line);border-radius:100px;
+    padding:10px 10px 10px 20px;margin-bottom:22px;box-shadow:var(--shadow);
   }
-  .brand-eyebrow{
-    font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.14em;
-    text-transform:uppercase;color:var(--gold);margin-bottom:8px;
+  .topnav .brand{display:flex;align-items:center;gap:9px;font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:16px;}
+  .brand .dot-mark{width:11px;height:11px;border-radius:4px;background:var(--lime);box-shadow:0 0 0 4px var(--card-soft);}
+  .topnav nav{display:flex;gap:4px;background:var(--card-soft);border-radius:100px;padding:4px;}
+  .topnav nav a{
+    font-size:13px;font-weight:600;color:var(--ink-soft);text-decoration:none;
+    padding:8px 16px;border-radius:100px;
   }
-  header h1{font-size:26px;font-weight:600;letter-spacing:-0.01em;}
-  header p{color:var(--muted);font-size:13.5px;margin-top:6px;max-width:520px;line-height:1.5;}
-
+  .topnav nav a.active{background:var(--ink);color:#fff;}
+  .topnav-right{display:flex;align-items:center;gap:10px;}
   .status-pill{
-    display:flex;align-items:center;gap:8px;background:var(--panel);
-    border:1px solid var(--line);padding:8px 14px;border-radius:100px;font-size:12.5px;color:var(--muted);
+    display:flex;align-items:center;gap:8px;background:var(--card-soft);
+    border:1px solid var(--line);padding:8px 14px;border-radius:100px;font-size:12px;color:var(--ink-soft);font-weight:600;
   }
-  .status-pill .dot{width:8px;height:8px;border-radius:50%;background:var(--red);box-shadow:0 0 0 3px rgba(199,67,58,.15);}
-  .status-pill.live .dot{background:var(--green);box-shadow:0 0 0 3px rgba(46,145,85,.18);}
-  .status-pill.loading .dot{background:var(--gold);box-shadow:0 0 0 3px rgba(201,122,36,.18);animation:pulse 1.1s ease-in-out infinite;}
+  .status-pill .dot{width:7px;height:7px;border-radius:50%;background:var(--red);box-shadow:0 0 0 3px rgba(198,73,62,.15);}
+  .status-pill.live .dot{background:var(--green);box-shadow:0 0 0 3px rgba(76,139,74,.18);}
+  .status-pill.loading .dot{background:var(--gold);box-shadow:0 0 0 3px rgba(217,138,61,.18);animation:pulse 1.1s ease-in-out infinite;}
   @keyframes pulse{0%,100%{opacity:1;}50%{opacity:.35;}}
+  .avatar-chip{
+    width:36px;height:36px;border-radius:50%;background:var(--olive-deep);color:#fff;
+    display:flex;align-items:center;justify-content:center;font-family:'Space Grotesk',sans-serif;
+    font-weight:600;font-size:13px;flex-shrink:0;
+  }
+
+  /* ---------- Greeting / hero stats ---------- */
+  .hero{
+    display:flex;justify-content:space-between;align-items:flex-end;gap:20px;flex-wrap:wrap;
+    margin-bottom:22px;
+  }
+  .hero h1{font-size:27px;font-weight:600;letter-spacing:-0.01em;}
+  .hero .wave{display:inline-block;transform-origin:70% 70%;}
+  .hero p{color:var(--ink-soft);font-size:13.5px;margin-top:6px;max-width:480px;line-height:1.5;}
+  .hero-stats{display:flex;gap:30px;flex-wrap:wrap;}
+  .hero-stat{display:flex;align-items:center;gap:10px;}
+  .hero-stat .icn{
+    width:34px;height:34px;border-radius:10px;background:var(--card-soft);border:1px solid var(--line);
+    display:flex;align-items:center;justify-content:center;font-size:15px;
+  }
+  .hero-stat .num{font-family:'Space Grotesk',sans-serif;font-size:23px;font-weight:700;line-height:1;}
+  .hero-stat .lbl{font-size:11px;color:var(--ink-soft);margin-top:3px;}
+
+  /* ---------- Error banner ---------- */
+  #errorBanner{
+    display:none;background:var(--red-dim);border:1px solid #EFC1BA;color:#8E332B;
+    border-radius:var(--radius-lg);padding:14px 18px;margin-bottom:20px;font-size:13px;line-height:1.5;
+  }
+  #errorBanner.open{display:block;}
+  #errorBanner strong{display:block;margin-bottom:3px;font-family:'Space Grotesk',sans-serif;}
 
   /* ---------- Toast ---------- */
   #toast{
     position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(120%);
-    background:var(--text);color:#fff;padding:12px 20px;border-radius:10px;font-size:13px;
+    background:var(--ink);color:#fff;padding:12px 20px;border-radius:100px;font-size:13px;
     box-shadow:0 10px 30px rgba(22,29,38,.25);z-index:200;transition:transform .25s ease;
     display:flex;align-items:center;gap:10px;
   }
   #toast.show{transform:translateX(-50%) translateY(0);}
   #toast.err{background:var(--red);}
-  #toast .dotok{width:7px;height:7px;border-radius:50%;background:var(--green);flex-shrink:0;}
+  #toast .dotok{width:7px;height:7px;border-radius:50%;background:var(--lime);flex-shrink:0;}
   #toast.err .dotok{background:#fff;}
 
-  /* ---------- Error banner ---------- */
-  #errorBanner{
-    display:none;background:#FCEEEC;border:1px solid #F0C6C1;color:var(--red);
-    border-radius:var(--radius);padding:14px 18px;margin-bottom:22px;font-size:13px;line-height:1.5;
-  }
-  #errorBanner.open{display:block;}
-  #errorBanner strong{display:block;margin-bottom:3px;font-family:'Space Grotesk',sans-serif;}
+  /* ---------- Layout grids ---------- */
+  .row-3{display:grid;grid-template-columns:1.55fr 1fr;gap:16px;margin-bottom:16px;align-items:stretch;}
+  @media (max-width:980px){.row-3{grid-template-columns:1fr;}}
+  .row-2{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px;}
+  @media (max-width:900px){.row-2{grid-template-columns:1fr;}}
 
-  /* ---------- KPI strip ---------- */
-  .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px;margin-bottom:26px;}
-  .kpi{
-    background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);
-    padding:16px 18px;position:relative;overflow:hidden;
-    box-shadow:0 1px 2px rgba(22,29,38,.04);
+  .panel{
+    background:var(--card);border:1px solid var(--line);border-radius:var(--radius-xl);
+    padding:20px;box-shadow:var(--shadow);
   }
-  .kpi .label{font-size:11.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;}
-  .kpi .value{font-family:'Space Grotesk',sans-serif;font-size:28px;font-weight:600;margin-top:6px;}
-  .kpi .sub{font-size:11.5px;color:var(--muted);margin-top:4px;}
-  .kpi.accent-gold .value{color:var(--gold);}
-  .kpi.accent-teal .value{color:var(--teal);}
-  .kpi.accent-red .value{color:var(--red);}
-
-  /* ---------- Panels ---------- */
-  .grid-2{display:grid;grid-template-columns:1.3fr 1fr;gap:16px;margin-bottom:26px;}
-  @media (max-width:900px){.grid-2{grid-template-columns:1fr;}}
-  .panel{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:20px;box-shadow:0 1px 2px rgba(22,29,38,.04);}
+  .panel-dark{
+    background:linear-gradient(160deg,var(--olive-deep) 0%, var(--olive) 100%);
+    color:#fff;border:none;
+  }
   .panel-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;}
   .panel-head h2{font-size:15px;font-weight:600;}
-  .panel-head span{font-size:11.5px;color:var(--muted);}
-  .chart-wrap{height:260px;position:relative;}
+  .panel-head span{font-size:11.5px;color:var(--ink-soft);}
+  .panel-dark .panel-head span{color:rgba(255,255,255,.65);}
+  .chart-wrap{height:240px;position:relative;}
+
+  /* ---------- Readiness ring panel ---------- */
+  .ring-panel{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;text-align:center;}
+  .ring-wrap{position:relative;width:150px;height:150px;}
+  .ring-wrap svg{width:100%;height:100%;transform:rotate(-90deg);}
+  .ring-wrap .ring-track{fill:none;stroke:var(--card-soft);stroke-width:12;}
+  .ring-wrap .ring-fill{fill:none;stroke:var(--lime);stroke-width:12;stroke-linecap:round;transition:stroke-dashoffset .6s ease;}
+  .ring-center{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;}
+  .ring-center .val{font-family:'Space Grotesk',sans-serif;font-size:26px;font-weight:700;}
+  .ring-center .cap{font-size:10px;color:var(--ink-soft);text-transform:uppercase;letter-spacing:.06em;margin-top:2px;}
+  .ring-panel h3{font-size:13.5px;font-weight:600;}
+  .ring-panel p{font-size:11.5px;color:var(--ink-soft);margin:0;max-width:190px;line-height:1.4;}
+
+  /* ---------- Flagged list (below-readiness) ---------- */
+  .flag-list{display:flex;flex-direction:column;gap:8px;}
+  .flag-item{
+    display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:12px;background:var(--card-soft);
+  }
+  .flag-item .avatar-chip{width:28px;height:28px;font-size:11px;background:var(--red);}
+  .flag-item .fi-name{font-size:12.5px;font-weight:600;flex:1;}
+  .flag-item .fi-score{font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--red);font-weight:600;}
+  .flag-empty{font-size:12px;color:var(--ink-soft);font-style:italic;padding:8px 2px;}
 
   /* NQT empty state */
   .empty-state{
-    height:260px;display:flex;flex-direction:column;align-items:center;justify-content:center;
-    text-align:center;color:var(--muted);gap:10px;
+    height:230px;display:flex;flex-direction:column;align-items:center;justify-content:center;
+    text-align:center;color:var(--ink-soft);gap:10px;
   }
   .empty-state .ring{
-    width:56px;height:56px;border-radius:50%;border:2px dashed var(--teal-dim);
-    display:flex;align-items:center;justify-content:center;color:var(--teal);font-size:20px;font-family:'Space Grotesk';
+    width:52px;height:52px;border-radius:50%;border:2px dashed var(--lime-deep);
+    display:flex;align-items:center;justify-content:center;color:var(--olive);font-size:19px;font-family:'Space Grotesk';
   }
-  .empty-state strong{color:var(--text);font-size:13.5px;font-weight:600;}
+  .empty-state strong{color:var(--ink);font-size:13.5px;font-weight:600;}
   .empty-state p{font-size:12px;max-width:280px;line-height:1.5;margin:0;}
+
+  /* ---------- Chip overview row ---------- */
+  .chip-row{display:flex;flex-direction:column;gap:10px;}
+  .chip-stat{
+    display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-radius:14px;
+  }
+  .chip-stat .cs-label{font-size:12.5px;font-weight:600;}
+  .chip-stat .cs-val{font-family:'Space Grotesk',sans-serif;font-size:18px;font-weight:700;}
+  .chip-stat.c-green{background:var(--green-dim);color:#2E5B2C;}
+  .chip-stat.c-gold{background:var(--gold-dim);color:#8A5620;}
+  .chip-stat.c-red{background:var(--red-dim);color:#8E332B;}
 
   /* ---------- Filters ---------- */
   .filters{
-    display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:16px;
+    display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:14px;
   }
   .filters input[type="text"], .filters select{
-    background:var(--panel);border:1px solid var(--line);color:var(--text);
-    padding:9px 12px;border-radius:8px;font-size:13px;font-family:inherit;
+    background:var(--card);border:1px solid var(--line);color:var(--ink);
+    padding:9px 13px;border-radius:100px;font-size:13px;font-family:inherit;
   }
   .filters input[type="text"]{flex:1;min-width:200px;}
-  .filters .count{margin-left:auto;color:var(--muted);font-size:12.5px;}
+  .filters .count{margin-left:auto;color:var(--ink-soft);font-size:12.5px;}
 
   /* ---------- Table ---------- */
-  .table-wrap{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;box-shadow:0 1px 2px rgba(22,29,38,.04);}
+  .table-wrap{background:var(--card);border:1px solid var(--line);border-radius:var(--radius-xl);overflow:hidden;box-shadow:var(--shadow);}
   table{width:100%;border-collapse:collapse;font-size:13px;}
   thead th{
-    text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);
-    padding:12px 14px;border-bottom:1px solid var(--line);white-space:nowrap;font-weight:600;
-    position:sticky;top:0;background:var(--panel);
+    text-align:left;font-size:10.5px;text-transform:uppercase;letter-spacing:.07em;color:var(--ink-soft);
+    padding:14px;border-bottom:1px solid var(--line);white-space:nowrap;font-weight:700;
+    position:sticky;top:0;background:var(--card);
   }
-  tbody td{padding:12px 14px;border-bottom:1px solid var(--line);vertical-align:middle;}
+  tbody td{padding:11px 14px;border-bottom:1px solid var(--line);vertical-align:middle;}
   tbody tr:last-child td{border-bottom:none;}
-  tbody tr:hover{background:var(--panel-2);}
+  tbody tr:hover{background:var(--card-soft);}
+  .student-cell{display:flex;align-items:center;gap:10px;}
   .student-name{font-weight:600;cursor:pointer;}
-  .student-name:hover{color:var(--gold);text-decoration:underline;}
-  .student-sub{color:var(--muted);font-size:11.5px;margin-top:2px;}
+  .student-name:hover{color:var(--olive-deep);text-decoration:underline;}
+  .student-sub{color:var(--ink-soft);font-size:11px;margin-top:1px;}
   .badge{
-    display:inline-block;padding:3px 9px;border-radius:100px;font-size:11px;font-weight:600;
+    display:inline-block;padding:3px 10px;border-radius:100px;font-size:11px;font-weight:700;
   }
-  .badge.eligible{background:rgba(46,145,85,.13);color:var(--green);}
-  .badge.pending{background:rgba(103,112,124,.13);color:var(--muted);}
-  .badge.arrears{background:rgba(199,67,58,.13);color:var(--red);font-weight:600;margin-left:6px;}
+  .badge.eligible{background:var(--green-dim);color:#2E5B2C;}
+  .badge.pending{background:var(--card-soft);color:var(--ink-soft);}
+  .badge.arrears{background:var(--red-dim);color:#8E332B;font-weight:700;margin-left:6px;}
 
   .row-edit-btn{
-    background:var(--panel-2);border:1px solid var(--line);color:var(--text);
-    padding:6px 12px;border-radius:7px;font-size:12px;cursor:pointer;font-family:inherit;font-weight:600;
+    background:var(--card-soft);border:1px solid var(--line);color:var(--ink);
+    padding:6px 13px;border-radius:100px;font-size:12px;cursor:pointer;font-family:inherit;font-weight:600;
     white-space:nowrap;
   }
   .row-edit-btn:hover{background:var(--line);}
 
   /* ---------- Student detail / edit modal ---------- */
   #modalOverlay{
-    display:none;position:fixed;inset:0;background:rgba(22,29,38,.45);
+    display:none;position:fixed;inset:0;background:rgba(28,33,22,.45);
     align-items:center;justify-content:center;z-index:100;padding:20px;
   }
   #modalOverlay.open{display:flex;}
   #modalCard{
-    background:var(--panel);border-radius:14px;max-width:640px;width:100%;
-    max-height:88vh;overflow-y:auto;box-shadow:0 20px 60px rgba(22,29,38,.25);
+    background:var(--card);border-radius:24px;max-width:640px;width:100%;
+    max-height:88vh;overflow-y:auto;box-shadow:0 24px 60px rgba(28,33,22,.3);
   }
   .modal-head{
     padding:22px 26px 16px;border-bottom:1px solid var(--line);
     display:flex;justify-content:space-between;align-items:flex-start;gap:12px;
-    position:sticky;top:0;background:var(--panel);z-index:2;
+    position:sticky;top:0;background:var(--card);z-index:2;border-radius:24px 24px 0 0;
   }
+  .modal-head-left{display:flex;gap:12px;align-items:center;}
   .modal-head h3{font-size:19px;font-weight:600;}
-  .modal-head .modal-sub{color:var(--muted);font-size:12.5px;margin-top:4px;font-family:'IBM Plex Mono',monospace;}
+  .modal-head .modal-sub{color:var(--ink-soft);font-size:12.5px;margin-top:4px;font-family:'IBM Plex Mono',monospace;}
   .modal-head-actions{display:flex;gap:8px;align-items:center;flex-shrink:0;}
   #modalClose{
-    background:var(--panel-2);border:none;width:30px;height:30px;border-radius:50%;
-    color:var(--muted);font-size:16px;cursor:pointer;flex-shrink:0;line-height:1;
+    background:var(--card-soft);border:none;width:30px;height:30px;border-radius:50%;
+    color:var(--ink-soft);font-size:16px;cursor:pointer;flex-shrink:0;line-height:1;
   }
-  #modalClose:hover{background:var(--line);color:var(--text);}
+  #modalClose:hover{background:var(--line);color:var(--ink);}
   .btn{
-    border:none;border-radius:8px;padding:9px 16px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;
+    border:none;border-radius:100px;padding:9px 17px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;
   }
-  .btn-edit{background:var(--text);color:#fff;}
-  .btn-edit:hover{background:#2b3542;}
-  .btn-save{background:var(--teal);color:#fff;}
-  .btn-save:hover{background:#157068;}
+  .btn-edit{background:var(--ink);color:#fff;}
+  .btn-edit:hover{background:#33392A;}
+  .btn-save{background:var(--olive-deep);color:#fff;}
+  .btn-save:hover{background:#2C351A;}
   .btn-save:disabled{opacity:.6;cursor:wait;}
-  .btn-cancel{background:var(--panel-2);color:var(--text);border:1px solid var(--line);}
+  .btn-cancel{background:var(--card-soft);color:var(--ink);border:1px solid var(--line);}
   .btn-cancel:hover{background:var(--line);}
 
   .modal-body{padding:20px 26px 26px;}
   .modal-section{margin-bottom:20px;}
   .modal-section:last-child{margin-bottom:0;}
   .modal-section-label{
-    font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);
-    font-weight:600;margin-bottom:10px;
+    font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--ink-soft);
+    font-weight:700;margin-bottom:10px;
   }
   .modal-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px 20px;}
   .modal-grid.cols-3{grid-template-columns:1fr 1fr 1fr;}
   .modal-field{}
-  .modal-field .f-label{font-size:11.5px;color:var(--muted);margin-bottom:4px;}
+  .modal-field .f-label{font-size:11.5px;color:var(--ink-soft);margin-bottom:4px;}
   .modal-field .f-value{font-size:14px;font-weight:600;}
   .modal-field .f-value.mono{font-family:'IBM Plex Mono',monospace;font-weight:500;}
   .modal-field input, .modal-field select{
-    display:none;width:100%;padding:8px 10px;border:1px solid var(--line);border-radius:7px;
-    font-family:inherit;font-size:13px;background:var(--panel-2);color:var(--text);
+    display:none;width:100%;padding:8px 10px;border:1px solid var(--line);border-radius:9px;
+    font-family:inherit;font-size:13px;background:var(--card-soft);color:var(--ink);
   }
   #modalCard.editing .f-value{display:none;}
   #modalCard.editing .modal-field input, #modalCard.editing .modal-field select{display:block;}
@@ -211,64 +278,74 @@
 
   .modal-links{display:flex;flex-direction:column;gap:8px;}
   .modal-link{
-    display:flex;align-items:center;gap:8px;padding:10px 12px;background:var(--panel-2);
-    border-radius:8px;font-size:13px;text-decoration:none;color:var(--text);
+    display:flex;align-items:center;gap:8px;padding:10px 12px;background:var(--card-soft);
+    border-radius:12px;font-size:13px;text-decoration:none;color:var(--ink);
   }
   .modal-link:hover{background:var(--line);}
   .modal-link .link-tag{
-    font-size:10.5px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);
-    background:var(--panel);padding:2px 7px;border-radius:5px;font-weight:600;
+    font-size:10.5px;text-transform:uppercase;letter-spacing:.06em;color:var(--ink-soft);
+    background:var(--card);padding:2px 7px;border-radius:6px;font-weight:700;
   }
-  .modal-link.unavailable{color:var(--muted);font-style:italic;}
+  .modal-link.unavailable{color:var(--ink-soft);font-style:italic;}
 
   .modal-save-error{
-    display:none;background:#FCEEEC;border:1px solid #F0C6C1;color:var(--red);
-    border-radius:8px;padding:10px 14px;font-size:12.5px;margin-top:14px;line-height:1.5;
+    display:none;background:var(--red-dim);border:1px solid #EFC1BA;color:#8E332B;
+    border-radius:10px;padding:10px 14px;font-size:12.5px;margin-top:14px;line-height:1.5;
   }
   .modal-save-error.open{display:block;}
 
-  /* Lane bar — signature element: score lane with pass-threshold tick */
-  .lane{width:120px;}
+  /* Lane bar */
+  .lane{width:116px;}
   .lane-track{
-    position:relative;height:7px;background:var(--panel-2);border-radius:4px;overflow:visible;
+    position:relative;height:7px;background:var(--card-soft);border-radius:4px;overflow:visible;
   }
   .lane-fill{position:absolute;top:0;left:0;height:100%;border-radius:4px;background:var(--gold);}
-  .lane-fill.teal{background:var(--teal);}
+  .lane-fill.teal{background:var(--olive);}
   .lane-threshold{
     position:absolute;top:-2px;left:50%;width:2px;height:11px;background:#C7CDD5;
   }
-  .lane-label{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--muted);margin-top:4px;}
-  .lane-label strong{color:var(--text);}
+  .lane-label{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--ink-soft);margin-top:4px;}
+  .lane-label strong{color:var(--ink);}
 
   .nqt-empty-cell{color:#9AA3AF;font-size:11.5px;font-style:italic;}
 
-  .loading-row td{color:var(--muted);text-align:center;padding:32px;font-size:13px;}
+  .loading-row td{color:var(--ink-soft);text-align:center;padding:32px;font-size:13px;}
 
-  footer{margin-top:30px;color:#9AA3AF;font-size:11.5px;text-align:center;}
+  footer{margin-top:28px;color:#9AA3AF;font-size:11.5px;text-align:center;}
 </style>
 </head>
 <body>
 
-<header>
+<div class="topnav">
+  <div class="brand"><span class="dot-mark"></span>FPC · Placement Cell</div>
+  <nav>
+    <a class="active" href="#">Dashboard</a>
+    <a href="#" onclick="return false;">Students</a>
+    <a href="#" onclick="return false;">Reports</a>
+  </nav>
+  <div class="topnav-right">
+    <div class="status-pill loading" id="statusPill">
+      <span class="dot" id="statusDot"></span>
+      <span id="statusText">Connecting to Supabase…</span>
+    </div>
+    <div class="avatar-chip">FP</div>
+  </div>
+</div>
+
+<div class="hero">
   <div>
-    <div class="brand-eyebrow">FPC · Final Year Placement Cell</div>
-    <h1>Placement Readiness Monitor</h1>
+    <h1>Good Morning, FPC Team <span class="wave">👋</span></h1>
     <p>Live tracking of HIRE Score % (FOP / DSA / Aptitude) and FPC NQT Assessment averages across the 2026–2027 eligible cohort.</p>
   </div>
-  <div class="status-pill loading" id="statusPill">
-    <span class="dot" id="statusDot"></span>
-    <span id="statusText">Connecting to Supabase…</span>
-  </div>
-</header>
+  <div class="hero-stats" id="heroStats"></div>
+</div>
 
 <div id="errorBanner">
   <strong>Couldn't load data from Supabase</strong>
   <span id="errorDetail"></span>
 </div>
 
-<div class="kpis" id="kpis"></div>
-
-<div class="grid-2">
+<div class="row-3">
   <div class="panel">
     <div class="panel-head">
       <h2>HIRE Score % — Overall, by student</h2>
@@ -276,6 +353,24 @@
     </div>
     <div class="chart-wrap"><canvas id="hireChart"></canvas></div>
   </div>
+
+  <div class="panel ring-panel">
+    <h3>Cohort HIRE Readiness</h3>
+    <div class="ring-wrap">
+      <svg viewBox="0 0 140 140">
+        <circle class="ring-track" cx="70" cy="70" r="58"></circle>
+        <circle class="ring-fill" id="ringFill" cx="70" cy="70" r="58" stroke-dasharray="364" stroke-dashoffset="364"></circle>
+      </svg>
+      <div class="ring-center">
+        <div class="val" id="ringValue">—</div>
+        <div class="cap">avg overall</div>
+      </div>
+    </div>
+    <p>Average HIRE overall score across the cohort. 60%+ is on track, below 35% needs intervention.</p>
+  </div>
+</div>
+
+<div class="row-2">
   <div class="panel" id="nqtPanel">
     <div class="panel-head">
       <h2>FPC NQT Assessment</h2>
@@ -283,6 +378,19 @@
     </div>
     <div id="nqtBody"></div>
   </div>
+
+  <div class="panel panel-dark">
+    <div class="panel-head">
+      <h2>Below Readiness Line</h2>
+      <span>HIRE overall &lt; 35%</span>
+    </div>
+    <div class="flag-list" id="flaggedList"></div>
+  </div>
+</div>
+
+<div class="panel" style="margin-bottom:20px;">
+  <div class="panel-head"><h2>Eligibility Overview</h2><span id="eligMeta"></span></div>
+  <div class="chip-row" id="eligChips" style="flex-direction:row;flex-wrap:wrap;"></div>
 </div>
 
 <div class="filters">
@@ -328,9 +436,12 @@
 <div id="modalOverlay" onclick="if(event.target===this) closeModal()">
   <div id="modalCard">
     <div class="modal-head">
-      <div>
-        <h3 id="modalName">—</h3>
-        <div class="modal-sub" id="modalSub">—</div>
+      <div class="modal-head-left">
+        <div class="avatar-chip" id="modalAvatar">—</div>
+        <div>
+          <h3 id="modalName">—</h3>
+          <div class="modal-sub" id="modalSub">—</div>
+        </div>
       </div>
       <div class="modal-head-actions">
         <button class="btn btn-edit" id="btnEdit" onclick="enterEditMode()">Edit</button>
@@ -589,28 +700,77 @@ function scoreColor(v){
   return 'var(--red)';
 }
 
-/* ---------------- KPI strip ---------------- */
-function renderKPIs(){
-  const total = STUDENTS.length;
-  const hireVals = STUDENTS.map(s=>fmt(s.hire_overall)).filter(v=>v!==null);
-  const nqtVals = STUDENTS.map(s=>fmt(s.nqt_overall)).filter(v=>v!==null);
-  const eligible = STUDENTS.filter(s=>s.eligibility_status && s.eligibility_status.toLowerCase()==='eligible').length;
-  const avgHire = hireVals.length ? (hireVals.reduce((a,b)=>a+b,0)/hireVals.length) : null;
-  const avgNqt = nqtVals.length ? (nqtVals.reduce((a,b)=>a+b,0)/nqtVals.length) : null;
-  const below35 = STUDENTS.filter(s=>{const v=fmt(s.hire_overall); return v!==null && v<35;}).length;
+function initials(name){
+  if(!name) return '—';
+  const parts = name.trim().split(/\s+/);
+  return ((parts[0]?.[0]||'') + (parts[1]?.[0]||'')).toUpperCase();
+}
 
-  const cards = [
-    {label:'Cohort size', value:total, sub:'BSC IT · final year', cls:''},
-    {label:'Eligibility confirmed', value:eligible, sub:`of ${total} students`, cls:'accent-teal'},
-    {label:'Avg HIRE overall', value: avgHire!==null? avgHire.toFixed(1)+'%':'—', sub:'FOP · DSA · Aptitude blend', cls:'accent-gold'},
-    {label:'Avg FPC NQT overall', value: avgNqt!==null? avgNqt.toFixed(1)+'%':'Not started', sub: nqtVals.length? `${nqtVals.length} recorded`:'Awaiting first assessment', cls:'accent-teal'},
-    {label:'Below readiness line', value: below35, sub:'HIRE overall < 35%', cls:'accent-red'},
+/* ---------------- Hero stats + ring + flagged + elig chips ---------------- */
+function renderHero(){
+  const total = STUDENTS.length;
+  const eligible = STUDENTS.filter(s=>s.eligibility_status && s.eligibility_status.toLowerCase()==='eligible').length;
+  const hireVals = STUDENTS.map(s=>fmt(s.hire_overall)).filter(v=>v!==null);
+  const avgHire = hireVals.length ? (hireVals.reduce((a,b)=>a+b,0)/hireVals.length) : null;
+
+  const stats = [
+    {icn:'🎓', num:total, lbl:'Cohort size'},
+    {icn:'✅', num:eligible, lbl:'Eligible'},
+    {icn:'📊', num:(avgHire!==null? avgHire.toFixed(0)+'%':'—'), lbl:'Avg HIRE'},
   ];
-  document.getElementById('kpis').innerHTML = cards.map(c=>`
-    <div class="kpi ${c.cls}">
-      <div class="label">${c.label}</div>
-      <div class="value">${c.value}</div>
-      <div class="sub">${c.sub}</div>
+  document.getElementById('heroStats').innerHTML = stats.map(s=>`
+    <div class="hero-stat">
+      <div class="icn">${s.icn}</div>
+      <div>
+        <div class="num">${s.num}</div>
+        <div class="lbl">${s.lbl}</div>
+      </div>
+    </div>`).join('');
+
+  // Ring
+  const pct = avgHire!==null ? Math.min(100, Math.max(0, avgHire)) : 0;
+  const circumference = 364; // 2*pi*58
+  const offset = circumference - (pct/100)*circumference;
+  const ring = document.getElementById('ringFill');
+  ring.style.strokeDasharray = circumference;
+  ring.style.strokeDashoffset = offset;
+  ring.style.stroke = pct>=60 ? 'var(--lime)' : pct>=35 ? 'var(--gold)' : 'var(--red)';
+  document.getElementById('ringValue').textContent = avgHire!==null ? avgHire.toFixed(1)+'%' : '—';
+}
+
+function renderFlagged(){
+  const flagged = STUDENTS
+    .filter(s=>{const v=fmt(s.hire_overall); return v!==null && v<35;})
+    .sort((a,b)=> (fmt(a.hire_overall)||0)-(fmt(b.hire_overall)||0))
+    .slice(0,6);
+  const box = document.getElementById('flaggedList');
+  if(flagged.length===0){
+    box.innerHTML = `<div class="flag-empty" style="color:rgba(255,255,255,.75);">No students currently below the 35% readiness line 🎉</div>`;
+    return;
+  }
+  box.innerHTML = flagged.map(s=>`
+    <div class="flag-item" style="background:rgba(255,255,255,.12);">
+      <div class="avatar-chip">${initials(s.student_name)}</div>
+      <div class="fi-name" style="color:#fff;">${s.student_name}</div>
+      <div class="fi-score" style="color:#FFD9C7;">${fmt(s.hire_overall)}%</div>
+    </div>`).join('');
+}
+
+function renderEligChips(){
+  const total = STUDENTS.length;
+  const eligible = STUDENTS.filter(s=>s.eligibility_status && s.eligibility_status.toLowerCase()==='eligible').length;
+  const pending = total - eligible;
+  const withArrears = STUDENTS.filter(s=>s.current_arrears>0).length;
+  document.getElementById('eligMeta').textContent = `${total} students tracked`;
+  const chips = [
+    {label:'Eligible', val:`${Math.round(eligible/total*100)}%`, cls:'c-green'},
+    {label:'Pending review', val:`${Math.round(pending/total*100)}%`, cls:'c-gold'},
+    {label:'With current arrears', val:withArrears, cls:'c-red'},
+  ];
+  document.getElementById('eligChips').innerHTML = chips.map(c=>`
+    <div class="chip-stat ${c.cls}" style="flex:1;min-width:170px;">
+      <span class="cs-label">${c.label}</span>
+      <span class="cs-val">${c.val}</span>
     </div>`).join('');
 }
 
@@ -620,18 +780,18 @@ function renderHireChart(){
   const sorted = [...STUDENTS].sort((a,b)=> (fmt(b.hire_overall)||0)-(fmt(a.hire_overall)||0));
   const labels = sorted.map(s=>s.student_name.split(' ')[0]);
   const data = sorted.map(s=>fmt(s.hire_overall)||0);
-  const colors = data.map(v=> v>=60 ? '#2E9155' : v>=35 ? '#C97A24' : '#C7433A');
+  const colors = data.map(v=> v>=60 ? '#4C8B4A' : v>=35 ? '#D98A3D' : '#C6493E');
 
   if(hireChartInstance) hireChartInstance.destroy();
   hireChartInstance = new Chart(ctx, {
     type:'bar',
-    data:{ labels, datasets:[{ data, backgroundColor:colors, borderRadius:4, maxBarThickness:22 }] },
+    data:{ labels, datasets:[{ data, backgroundColor:colors, borderRadius:6, maxBarThickness:22 }] },
     options:{
       responsive:true, maintainAspectRatio:false,
       plugins:{ legend:{display:false}, tooltip:{callbacks:{label:(c)=>`Overall: ${c.raw}%`}} },
       scales:{
-        y:{ beginAtZero:true, max:100, grid:{color:'#EBEEF1'}, ticks:{color:'#67707C', font:{size:10.5}} },
-        x:{ grid:{display:false}, ticks:{color:'#67707C', font:{size:10.5}, maxRotation:60, minRotation:60} }
+        y:{ beginAtZero:true, max:100, grid:{color:'#EEF1DF'}, ticks:{color:'#6E7660', font:{size:10.5}} },
+        x:{ grid:{display:false}, ticks:{color:'#6E7660', font:{size:10.5}, maxRotation:60, minRotation:60} }
       }
     }
   });
@@ -661,13 +821,13 @@ function renderNqtPanel(){
     const a = vals.length? vals.reduce((x,y)=>x+y,0)/vals.length : 0;
     return {label, a};
   });
-  body.innerHTML = `<div class="chart-wrap" style="height:260px;"><canvas id="nqtChart"></canvas></div>`;
+  body.innerHTML = `<div class="chart-wrap" style="height:230px;"><canvas id="nqtChart"></canvas></div>`;
   new Chart(document.getElementById('nqtChart').getContext('2d'), {
     type:'bar',
-    data:{ labels:avg.map(a=>a.label), datasets:[{data:avg.map(a=>a.a.toFixed(1)), backgroundColor:'#1B8E86', borderRadius:4}] },
+    data:{ labels:avg.map(a=>a.label), datasets:[{data:avg.map(a=>a.a.toFixed(1)), backgroundColor:'#5C6B32', borderRadius:6}] },
     options:{ indexAxis:'y', responsive:true, maintainAspectRatio:false,
       plugins:{legend:{display:false}},
-      scales:{ x:{beginAtZero:true,max:100, grid:{color:'#EBEEF1'}, ticks:{color:'#67707C'}}, y:{grid:{display:false}, ticks:{color:'#67707C'}} }
+      scales:{ x:{beginAtZero:true,max:100, grid:{color:'#EEF1DF'}, ticks:{color:'#6E7660'}}, y:{grid:{display:false}, ticks:{color:'#6E7660'}} }
     }
   });
 }
@@ -724,8 +884,13 @@ function renderTable(){
     return `
     <tr>
       <td>
-        <div class="student-name" onclick="openModal('${s.registration_number}')">${s.student_name}</div>
-        <div class="student-sub mono">${s.registration_number||''} · ${s.department||''}</div>
+        <div class="student-cell">
+          <div class="avatar-chip" style="background:var(--olive);width:32px;height:32px;font-size:11.5px;">${initials(s.student_name)}</div>
+          <div>
+            <div class="student-name" onclick="openModal('${s.registration_number}')">${s.student_name}</div>
+            <div class="student-sub mono">${s.registration_number||''} · ${s.department||''}</div>
+          </div>
+        </div>
       </td>
       <td>
         <span class="badge ${isEligible?'eligible':'pending'}">${isEligible?'Eligible':'Pending'}</span>
@@ -743,9 +908,11 @@ function renderTable(){
 }
 
 function renderAll(){
-  renderKPIs();
+  renderHero();
   renderHireChart();
   renderNqtPanel();
+  renderFlagged();
+  renderEligChips();
   populateFilters();
   renderTable();
 }
@@ -776,6 +943,7 @@ function openModal(regNo, startInEdit){
   currentEditRegNo = regNo;
   const isEligible = s.eligibility_status && s.eligibility_status.toLowerCase()==='eligible';
 
+  document.getElementById('modalAvatar').textContent = initials(s.student_name);
   document.getElementById('modalName').textContent = s.student_name;
   document.getElementById('modalSub').textContent = `${s.registration_number || '—'} · ${s.department || '—'}`;
 
