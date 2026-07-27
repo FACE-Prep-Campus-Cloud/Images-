@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FPC Placement Readiness Monitor · 2026-2027</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<style>
+  :root{
+    --bg:#0E131A;
+    --panel:#161D26;
+    --panel-2:#1C2530;
+    --line:#28323F;
+    --text:#E9EDF2;
+    --muted:#8A96A6;
+    --gold:#E3A857;
+    --gold-dim:#5B4A2E;
+    --teal:#4FC1B8;
+    --teal-dim:#254745;
+    --red:#E5594E;
+    --green:#5FBF7A;
+    --radius:10px;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:
+      radial-gradient(1100px 500px at 85% -10%, #17202B 0%, transparent 60%),
+      var(--bg);
+    color:var(--text);
+    font-family:'Inter',system-ui,sans-serif;
+    -webkit-font-smoothing:antialiased;
+    padding:32px clamp(16px,4vw,56px) 80px;
+  }
+  h1,h2,h3{font-family:'Space Grotesk',sans-serif;margin:0;}
+  .mono{font-family:'IBM Plex Mono',monospace;}
+
+  /* ---------- Header ---------- */
+  header{
+    display:flex;justify-content:space-between;align-items:flex-start;
+    gap:24px;flex-wrap:wrap;margin-bottom:28px;
+  }
+  .brand-eyebrow{
+    font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.14em;
+    text-transform:uppercase;color:var(--gold);margin-bottom:8px;
+  }
+  header h1{font-size:26px;font-weight:600;letter-spacing:-0.01em;}
+  header p{color:var(--muted);font-size:13.5px;margin-top:6px;max-width:520px;line-height:1.5;}
+
+  .status-pill{
+    display:flex;align-items:center;gap:8px;background:var(--panel);
+    border:1px solid var(--line);padding:8px 14px;border-radius:100px;font-size:12.5px;color:var(--muted);
+    cursor:pointer;user-select:none;
+  }
+  .status-pill .dot{width:8px;height:8px;border-radius:50%;background:var(--red);box-shadow:0 0 0 3px rgba(229,89,78,.15);}
+  .status-pill.live .dot{background:var(--green);box-shadow:0 0 0 3px rgba(95,191,122,.18);}
+
+  /* ---------- Config panel ---------- */
+  #configPanel{
+    display:none;background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);
+    padding:18px 20px;margin-bottom:26px;
+  }
+  #configPanel.open{display:block;}
+  #configPanel h3{font-size:14px;margin-bottom:4px;}
+  #configPanel p{color:var(--muted);font-size:12.5px;margin:4px 0 14px;line-height:1.5;}
+  .cfg-row{display:flex;gap:10px;flex-wrap:wrap;}
+  .cfg-row input{
+    flex:1;min-width:220px;background:var(--panel-2);border:1px solid var(--line);color:var(--text);
+    padding:10px 12px;border-radius:8px;font-size:13px;font-family:'IBM Plex Mono',monospace;
+  }
+  .cfg-row button{
+    background:var(--gold);color:#1a1206;border:none;padding:10px 18px;border-radius:8px;
+    font-weight:600;font-size:13px;cursor:pointer;
+  }
+  .cfg-row button.secondary{background:transparent;border:1px solid var(--line);color:var(--muted);}
+  #configPanel small{display:block;margin-top:10px;color:#5C6879;font-size:11.5px;}
+
+  /* ---------- KPI strip ---------- */
+  .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px;margin-bottom:26px;}
+  .kpi{
+    background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);
+    padding:16px 18px;position:relative;overflow:hidden;
+  }
+  .kpi .label{font-size:11.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;}
+  .kpi .value{font-family:'Space Grotesk',sans-serif;font-size:28px;font-weight:600;margin-top:6px;}
+  .kpi .sub{font-size:11.5px;color:var(--muted);margin-top:4px;}
+  .kpi.accent-gold .value{color:var(--gold);}
+  .kpi.accent-teal .value{color:var(--teal);}
+  .kpi.accent-red .value{color:var(--red);}
+
+  /* ---------- Panels ---------- */
+  .grid-2{display:grid;grid-template-columns:1.3fr 1fr;gap:16px;margin-bottom:26px;}
+  @media (max-width:900px){.grid-2{grid-template-columns:1fr;}}
+  .panel{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:20px;}
+  .panel-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;}
+  .panel-head h2{font-size:15px;font-weight:600;}
+  .panel-head span{font-size:11.5px;color:var(--muted);}
+  .chart-wrap{height:260px;position:relative;}
+
+  /* NQT empty state */
+  .empty-state{
+    height:260px;display:flex;flex-direction:column;align-items:center;justify-content:center;
+    text-align:center;color:var(--muted);gap:10px;
+  }
+  .empty-state .ring{
+    width:56px;height:56px;border-radius:50%;border:2px dashed var(--teal-dim);
+    display:flex;align-items:center;justify-content:center;color:var(--teal);font-size:20px;font-family:'Space Grotesk';
+  }
+  .empty-state strong{color:var(--text);font-size:13.5px;font-weight:600;}
+  .empty-state p{font-size:12px;max-width:280px;line-height:1.5;margin:0;}
+
+  /* ---------- Filters ---------- */
+  .filters{
+    display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:16px;
+  }
+  .filters input[type="text"], .filters select{
+    background:var(--panel);border:1px solid var(--line);color:var(--text);
+    padding:9px 12px;border-radius:8px;font-size:13px;font-family:inherit;
+  }
+  .filters input[type="text"]{flex:1;min-width:200px;}
+  .filters .count{margin-left:auto;color:var(--muted);font-size:12.5px;}
+
+  /* ---------- Table ---------- */
+  .table-wrap{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;}
+  table{width:100%;border-collapse:collapse;font-size:13px;}
+  thead th{
+    text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);
+    padding:12px 14px;border-bottom:1px solid var(--line);white-space:nowrap;font-weight:600;
+    position:sticky;top:0;background:var(--panel);cursor:pointer;
+  }
+  thead th:hover{color:var(--text);}
+  tbody td{padding:12px 14px;border-bottom:1px solid var(--line);vertical-align:middle;}
+  tbody tr:last-child td{border-bottom:none;}
+  tbody tr:hover{background:var(--panel-2);}
+  .student-name{font-weight:600;}
+  .student-sub{color:var(--muted);font-size:11.5px;margin-top:2px;}
+  .badge{
+    display:inline-block;padding:3px 9px;border-radius:100px;font-size:11px;font-weight:600;
+  }
+  .badge.eligible{background:rgba(95,191,122,.15);color:var(--green);}
+  .badge.pending{background:rgba(138,150,166,.15);color:var(--muted);}
+  .badge.arrears{background:rgba(229,89,78,.14);color:var(--red);font-weight:600;margin-left:6px;}
+
+  /* Lane bar — signature element: score lane with pass-threshold tick */
+  .lane{width:120px;}
+  .lane-track{
+    position:relative;height:7px;background:var(--panel-2);border-radius:4px;overflow:visible;
+  }
+  .lane-fill{position:absolute;top:0;left:0;height:100%;border-radius:4px;background:var(--gold);}
+  .lane-fill.teal{background:var(--teal);}
+  .lane-threshold{
+    position:absolute;top:-2px;left:50%;width:2px;height:11px;background:#4C5666;
+  }
+  .lane-label{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--muted);margin-top:4px;}
+  .lane-label strong{color:var(--text);}
+
+  .nqt-empty-cell{color:#5C6879;font-size:11.5px;font-style:italic;}
+
+  footer{margin-top:30px;color:#4C5666;font-size:11.5px;text-align:center;}
+  footer a{color:var(--muted);}
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <div class="brand-eyebrow">FPC · Final Year Placement Cell</div>
+    <h1>Placement Readiness Monitor</h1>
+    <p>Live tracking of HIRE Score % (FOP / DSA / Aptitude) and FPC NQT Assessment averages across the 2026–2027 eligible cohort.</p>
+  </div>
+  <div class="status-pill" id="statusPill" onclick="toggleConfig()">
+    <span class="dot" id="statusDot"></span>
+    <span id="statusText">Using local dataset · click to connect Supabase</span>
+  </div>
+</header>
+
+<div id="configPanel">
+  <h3>Connect to Supabase</h3>
+  <p>Paste your project URL and <strong>anon public</strong> key (Project Settings → API). Data is pulled from the <span class="mono">student_monitor_view</span> created by <span class="mono">schema.sql</span>. Credentials are stored only in this browser's local storage.</p>
+  <div class="cfg-row">
+    <input type="text" id="sbUrl" placeholder="https://xxxxxxxx.supabase.co">
+    <input type="text" id="sbKey" placeholder="anon public API key">
+    <button onclick="connectSupabase()">Connect</button>
+    <button class="secondary" onclick="useLocalData()">Use local dataset</button>
+  </div>
+  <small id="cfgError"></small>
+</div>
+
+<div class="kpis" id="kpis"></div>
+
+<div class="grid-2">
+  <div class="panel">
+    <div class="panel-head">
+      <h2>HIRE Score % — Overall, by student</h2>
+      <span id="hireAsOf">as of 25 Jun 2026</span>
+    </div>
+    <div class="chart-wrap"><canvas id="hireChart"></canvas></div>
+  </div>
+  <div class="panel" id="nqtPanel">
+    <div class="panel-head">
+      <h2>FPC NQT Assessment</h2>
+      <span id="nqtMeta"></span>
+    </div>
+    <div id="nqtBody"></div>
+  </div>
+</div>
+
+<div class="filters">
+  <input type="text" id="searchBox" placeholder="Search by name, reg. no. or email…" oninput="renderTable()">
+  <select id="deptFilter" onchange="renderTable()"><option value="">All departments</option></select>
+  <select id="eligFilter" onchange="renderTable()">
+    <option value="">All eligibility</option>
+    <option value="Eligible">Eligible</option>
+    <option value="Pending">Pending review</option>
+  </select>
+  <select id="sortSelect" onchange="renderTable()">
+    <option value="s_no">Sort: Roll order</option>
+    <option value="hire_overall_desc">Sort: HIRE Overall ↓</option>
+    <option value="hire_overall_asc">Sort: HIRE Overall ↑</option>
+    <option value="nqt_overall_desc">Sort: NQT Overall ↓</option>
+  </select>
+  <span class="count" id="rowCount"></span>
+</div>
+
+<div class="table-wrap">
+  <table>
+    <thead>
+      <tr>
+        <th>Student</th>
+        <th>Eligibility</th>
+        <th>Comm. Level</th>
+        <th>FOP</th>
+        <th>DSA</th>
+        <th>Aptitude</th>
+        <th>HIRE Overall</th>
+        <th>FPC NQT Overall</th>
+      </tr>
+    </thead>
+    <tbody id="tableBody"></tbody>
+  </table>
+</div>
+
+<footer>Data source: FPC Final Year Placement Tracker (2026–2027) · schema.sql / seed_data.sql define the Supabase tables this dashboard reads from.</footer>
+
+<script>
+/* ============================================================
+   Embedded fallback dataset — the real, current tracker export.
+   Once Supabase is connected, live data replaces this entirely.
+   ============================================================ */
+const LOCAL_DATA = [{"s_no": 1, "student_name": "Abdul Kalam Azad J", "email": "azaddpm2007@gmail.com", "registration_number": "2426J0623", "department": "BSC IT", "tenth_mark": 47.8, "twelfth_mark": 54.83, "ug_percentage": 69.19, "pg_percentage": null, "eligibility_status": null, "current_arrears": 0, "history_of_arrears": 1, "linkedin_url": "Adul kalam", "resume_url": "ABDUL KALAM AZAD", "github_url": "https://github.com/AbdulKalamAzad-2007", "efset_certificate_url": "BSC IT MAY MONTH EF SET CERTIFICATES", "communication_skill_level": "A2(Elementary)", "hire_fop": 75.0, "hire_dsa": 0.0, "hire_aptitude": 31.0, "hire_overall": 35.0, "nqt_assessment_count": null, "nqt_verbal": null, "nqt_numerical": null, "nqt_reasoning": null, "nqt_advanced_quant": null, "nqt_coding": null, "nqt_overall": null}, {"s_no": 2, "student_name": "Akash R", "email": "akashraghu051@gmail.com", "registration_number": "2426J0625", "department": "BSC IT", "tenth_mark": 66.2, "twelfth_mark": 68.83, "ug_percentage": 69.92, "pg_percentage": null, "eligibility_status": "Eligible", "current_arrears": 0, "history_of_arrears": 1, "linkedin_url": "akash", "resume_url": "AKASH", "github_url": "https://github.com/Akash122006", "efset_certificate_url": null, "communication_skill_level": "A1 (Beginner)", "hire_fop": 0.0, "hire_dsa": 0.0, "hire_aptitude": 0.0, "hire_overall": 0.0, "nqt_assessment_count": null, "nqt_verbal": null, "nqt_numerical": null, "nqt_reasoning": null, "nqt_advanced_quant": null, "nqt_coding": null, "nqt_overall": null}, {"s_no": 3, "student_name": "Aswin Kumar R", "email": "aswink2211@gmail.com", "registration_number": "2426J0627", "department": "BSC IT", "tenth_mark": 69.8, "twelfth_mark": 66.0, "ug_percentage": 75.8, "pg_percentage": null, "eligibility_status": "Eligible", "current_arrears": 1, "history_of_arrears": 1, "linkedin_url": "aswin", "resume_url": "ASWIN KUMAR", "github_url": "https://github.com/Aswin-Xo", "efset_certificate_url": null, "communication_skill_level": "C1(Advanced)", "hire_fop": 75.0, "hire_dsa": 0.0, "hire_aptitude": 29.0, "hire_overall": 35.0, "nqt_assessment_count": null, "nqt_verbal": null, "nqt_numerical": null, "nqt_reasoning": null, "nqt_advanced_quant": null, "nqt_coding": null, "nqt_overall": null}, {"s_no": 4, "student_name": "Hari Prasath R", "email": "hariprasathraju321@gmail.com", "registration_number": "2426J0630", "department": "BSC IT", "tenth_mark": 59.2, "twelfth_mark": 58.17, "ug_percentage": 77.46, "pg_percentage": null, "eligibility_status": null, "current_arrears": 0, "history_of_arrears": 0, "linkedin_url": "hari", "resume_url": "HARIPRASAD", "github_url": "https://github.com/HARI-PRASATH-R", "efset_certificate_url": null, "communication_skill_level": "B1(Intermediate)", "hire_fop": 90.0, "hire_dsa": 0.0, "hire_aptitude": 35.0, "hire_overall": 42.0, "nqt_assessment_count": null, "nqt_verbal": null, "nqt_numerical": null, "nqt_reasoning": null, "nqt_advanced_quant": null, "nqt_coding": null, "nqt_overall": null}, {"s_no": 5, "student_name": "Kathiravan V", "email": "kathirkat25@gmail.com", "registration_number": "2426J0631", "department": "BSC IT", "tenth_mark": 50.8, "twelfth_mark": 59.33, "ug_percentage": 77.2, "pg_percentage": null, "eligibility_status": null, "current_arrears": 0, "history_of_arrears": 0, "linkedin_url": "kathir", "resume_url": "KATHIRAVAN", "github_url": "https://github.com/kathir-kat07", "efset_certificate_url": null, "communication_skill_level": "B2(Upper Intermediate)", "hire_fop": 65.0, "hire_dsa": 12.0, "hire_aptitude": 36.0, "hire_overall": 38.0, "nqt_assessment_count": null, "nqt_verbal": null, "nqt_numerical": null, "nqt_reasoning": null, "nqt_advanced_quant": null, "nqt_coding": null, "nqt_overall": null}, {"s_no": 6, "student_name": "Lingeswaran S", "email": "slingeswaran2007@gmail.com", "registration_number": "2426J0633", "department": "BSC IT", "tenth_mark": 58.4, "twelfth_mark": 67.67, "ug_percentage": 73.01, "pg_percentage": null, "eligibility_status": null, "current_arrears": 0, "history_of_arrears": 0, "linkedin_url": "lingeswaran", "resume_url": "LINGESWARAN", "github_url": "https://github.com/Lingeswaran2007", "efset_certificate_url": null, "communication_skill_level": "A2(Elementary)", "hire_fop": 0.0, "hire_dsa": 0.0, "hire_aptitude": 28.0, "hire_overall": 9.0, "nqt_assessment_count": null, "nqt_verbal": null, "nqt_numerical": null, "nqt_reasoning": null, "nqt_advanced_quant": null, "nqt_coding": null, "nqt_overall": null}, {"s_no": 7, "student_name": "Parkavi P", "email": "sastikuttysastikutty@gmail.com", "registration_number": "2426J0638", "department": "BSC IT", "tenth_mark": 56.8, "twelfth_mark": 67.67, "ug_percentage": 75.78, "pg_percentage": null, "eligibility_status": null, "current_arrears": 0, "history_of_arrears": 1, "linkedin_url": "parkavi", "resume_url": "PARKAVI", "github_url": "https://github.com/parkavi2807", "efset_certificate_url": null, "communication_skill_level": "B1(Intermediate)", "hire_fop": 25.0, "hire_dsa": 0.0, "hire_aptitude": 29.0, "hire_overall": 18.0, "nqt_assessment_count": null, "nqt_verbal": null, "nqt_numerical": null, "nqt_reasoning": null, "nqt_advanced_quant": null, "nqt_coding": null, "nqt_overall": null}, {"s_no": 8, "student_name": "Premkumar V", "email": "pp6036002@gmail.com", "registration_number": "2426J0640", "department": "BSC IT", "tenth_mark": 54.0, "twelfth_mark": 55.17, "ug_percentage": 69.36, "pg_percentage": null, "eligibility_status": null, "current_arrears": 0, "history_of_arrears": 1, "linkedin_url": "prem", "resume_url": "PREMKUMAR", "github_url": "https://github.com/premkumar16112006", "efset_certificate_url": null, "communication_skill_level": "A2(Elementary)", "hire_fop": 90.0, "hire_dsa": 40.0, "hire_aptitude": 33.0, "hire_overall": 54.0, "nqt_assessment_count": null, "nqt_verbal": null, "nqt_numerical": null, "nqt_reasoning": null, "nqt_advanced_quant": null, "nqt_coding": null, "nqt_overall": null}, {"s_no": 9, "student_name": "Raghav Krishna R B", "email": "rbraghavkrishna@gmail.com", "registration_number": "2426J0641", "department": "BSC IT", "tenth_mark": 59.8, "twelfth_mark": 78.67, "ug_percentage": 64.32, "pg_percentage": null, "eligibility_status": null, "current_arrears": 1, "history_of_arrears": 1, "linkedin_url": "raghav", "resume_url": "RAGHAVKRISHNA", "github_url": "https://github.com/Raghavkrishna-005/Raghavkrishna-005", "efset_certificate_url": null, "communication_skill_level": "A2(Elementary)", "hire_fop": 0.0, "hire_dsa": 0.0, "hire_aptitude": 0.0, "hire_overall": 0.0, "nqt_assessment_count": null, "nqt_verbal": null, "nqt_numerical": null, "nqt_reasoning": null, "nqt_advanced_quant": null, "nqt_coding": null, "nqt_overall": null}, {"s_no": 10, "student_name": "Sanjay R", "email": "nr.sanjay848@gmail.com", "registration_number": "2426J0643", "department": "BSC IT", "tenth_mark": 47.2, "twelfth_mark": 70.67, "ug_percentage": 64.3, "pg_percentage": null, "eligibility_status": null, "current_arrears": 0, "history_of_arrears": 1, "linkedin_url": "sanjay", "resume_url": "SANJAY", "github_url": "https://github.com/Redeyessa", "efset_certificate_url": null, "communication_skill_level": "B2(Upper Intermediate)", "hire_fop": 90.0, "hire_dsa": 100.0, "hire_aptitude": 41.0, "hire_overall": 77.0, "nqt_assessment_count": null, "nqt_verbal": null, "nqt_numerical": null, "nqt_reasoning": null, "nqt_advanced_quant": null, "nqt_coding": null, "nqt_overall": null}, {"s_no": 11, "student_name": "Sivaraj P", "email": "sivarajp612@gmail.com", "registration_number": "2426J0644", "department": "BSC IT", "tenth_mark": 53.6, "twelfth_mark": 52.0, "ug_percentage": 71.6, "pg_percentage": null, "eligibility_status": null, "current_arrears": 0, "history_of_arrears": 0, "linkedin_url": "sivaraj", "resume_url": "SIVARAJ", "github_url": "https://github.com/P-SIVARAJ", "efset_certificate_url": null, "communication_skill_level": "B1(Intermediate)", "hire_fop": 90.0, "hire_dsa": 100.0, "hire_aptitude": 29.0, "hire_overall": 73.0, "nqt_assessment_count": null, "nqt_verbal": null, "nqt_numerical": null, "nqt_reasoning": null, "nqt_advanced_quant": null, "nqt_coding": null, "nqt_overall": null}, {"s_no": 12, "student_name": "Sree Rudhra B", "email": "sreerudhr0alamurukan@gmail.com", "registration_number": "2426J0646", "department": "BSC IT", "tenth_mark": 73.0, "twelfth_mark": 79.0, "ug_percentage": 66.55, "pg_percentage": null, "eligibility_status": "Eligible", "current_arrears": 1, "history_of_arrears": 0, "linkedin_url": "sreerudra", "resume_url": "SREE RUDRA", "github_url": "https://www.hackerrank.com/profile/sreerudhra", "efset_certificate_url": null, "communication_skill_level": "A2(Elementary)", "hire_fop": 0.0, "hire_dsa": 0.0, "hire_aptitude": 0.0, "hire_overall": 0.0, "nqt_assessment_count": null, "nqt_verbal": null, "nqt_numerical": null, "nqt_reasoning": null, "nqt_advanced_quant": null, "nqt_coding": null, "nqt_overall": null}, {"s_no": 13, "student_name": "Sridhar V L", "email": "Vsridhar849@gmail.com", "registration_number": "2426J0649", "department": "BSC IT", "tenth_mark": 73.8, "twelfth_mark": 59.17, "ug_percentage": 76.1, "pg_percentage": null, "eligibility_status": null, "current_arrears": 0, "history_of_arrears": 0, "linkedin_url": "sridhar", "resume_url": "V.L SRIDHAR", "github_url": "https://github.com/Sridhar-VL", "efset_certificate_url": null, "communication_skill_level": "B2(Upper Intermediate)", "hire_fop": 0.0, "hire_dsa": 0.0, "hire_aptitude": 0.0, "hire_overall": 0.0, "nqt_assessment_count": null, "nqt_verbal": null, "nqt_numerical": null, "nqt_reasoning": null, "nqt_advanced_quant": null, "nqt_coding": null, "nqt_overall": null}, {"s_no": 14, "student_name": "Sri Ashwinth R", "email": "ashwinth112plus@gmail.com", "registration_number": "2426J0647", "department": "BSC IT", "tenth_mark": 50.8, "twelfth_mark": 53.0, "ug_percentage": 67.2, "pg_percentage": null, "eligibility_status": null, "current_arrears": 0, "history_of_arrears": 1, "linkedin_url": "aswinth", "resume_url": "SHRI ASWINTH", "github_url": "https://github.com/ASHWINTH00", "efset_certificate_url": null, "communication_skill_level": "A1 (Beginner)", "hire_fop": 75.0, "hire_dsa": 40.0, "hire_aptitude": 39.0, "hire_overall": 51.0, "nqt_assessment_count": null, "nqt_verbal": null, "nqt_numerical": null, "nqt_reasoning": null, "nqt_advanced_quant": null, "nqt_coding": null, "nqt_overall": null}, {"s_no": 15, "student_name": "Varshini P", "email": "varshini6136@gmail.com", "registration_number": "2426J0651", "department": "BSC IT", "tenth_mark": 50.0, "twelfth_mark": 70.5, "ug_percentage": 69.27, "pg_percentage": null, "eligibility_status": null, "current_arrears": 0, "history_of_arrears": 0, "linkedin_url": "varshini", "resume_url": "VARSHINI", "github_url": "https://github.com/varshiniselvam", "efset_certificate_url": null, "communication_skill_level": "A1 (Beginner)", "hire_fop": 0.0, "hire_dsa": 0.0, "hire_aptitude": 28.0, "hire_overall": 9.0, "nqt_assessment_count": null, "nqt_verbal": null, "nqt_numerical": null, "nqt_reasoning": null, "nqt_advanced_quant": null, "nqt_coding": null, "nqt_overall": null}, {"s_no": 16, "student_name": "Pandiyaraj. P", "email": "rajpandiya195@gmail.com", "registration_number": "2426J0637", "department": "BSC IT", "tenth_mark": 70.8, "twelfth_mark": 66.33, "ug_percentage": 76.55, "pg_percentage": null, "eligibility_status": "Eligible", "current_arrears": 0, "history_of_arrears": 0, "linkedin_url": "pandiaraj", "resume_url": "PANDIARAJ", "github_url": "https://github.com/Pandiyaraj-P", "efset_certificate_url": null, "communication_skill_level": "B1(Intermediate)", "hire_fop": 90.0, "hire_dsa": 40.0, "hire_aptitude": 34.0, "hire_overall": 55.0, "nqt_assessment_count": null, "nqt_verbal": null, "nqt_numerical": null, "nqt_reasoning": null, "nqt_advanced_quant": null, "nqt_coding": null, "nqt_overall": null}];
+
+let STUDENTS = [];
+let hireChartInstance = null;
+
+function toggleConfig(){
+  document.getElementById('configPanel').classList.toggle('open');
+}
+
+function setStatus(live, label){
+  document.getElementById('statusDot').parentElement.classList.toggle('live', live);
+  document.getElementById('statusText').textContent = label;
+}
+
+async function connectSupabase(){
+  const url = document.getElementById('sbUrl').value.trim().replace(/\/$/,'');
+  const key = document.getElementById('sbKey').value.trim();
+  const err = document.getElementById('cfgError');
+  err.textContent = '';
+  if(!url || !key){ err.textContent = 'Enter both the project URL and anon key.'; return; }
+  try{
+    const res = await fetch(`${url}/rest/v1/student_monitor_view?select=*&order=s_no.asc`, {
+      headers:{ apikey:key, Authorization:`Bearer ${key}` }
+    });
+    if(!res.ok) throw new Error(`Supabase responded ${res.status}`);
+    const rows = await res.json();
+    if(!Array.isArray(rows) || rows.length === 0) throw new Error('Query succeeded but returned no rows — check the view exists and RLS allows read.');
+    localStorage.setItem('fpc_sb_url', url);
+    localStorage.setItem('fpc_sb_key', key);
+    STUDENTS = normalizeFromView(rows);
+    setStatus(true, 'Live · connected to Supabase');
+    document.getElementById('configPanel').classList.remove('open');
+    renderAll();
+  }catch(e){
+    err.textContent = 'Could not connect: ' + e.message;
+  }
+}
+
+function useLocalData(){
+  localStorage.removeItem('fpc_sb_url');
+  localStorage.removeItem('fpc_sb_key');
+  STUDENTS = normalizeFromLocal(LOCAL_DATA);
+  setStatus(false, 'Using local dataset · click to connect Supabase');
+  document.getElementById('configPanel').classList.remove('open');
+  renderAll();
+}
+
+function normalizeFromLocal(rows){
+  return rows.map(r => ({
+    s_no: r.s_no, student_name: r.student_name, email: r.email,
+    registration_number: r.registration_number, department: r.department,
+    eligibility_status: r.eligibility_status, current_arrears: r.current_arrears,
+    communication_skill_level: r.communication_skill_level,
+    hire_fop: r.hire_fop, hire_dsa: r.hire_dsa, hire_aptitude: r.hire_aptitude, hire_overall: r.hire_overall,
+    nqt_assessment_count: r.nqt_assessment_count, nqt_verbal_ability: r.nqt_verbal,
+    nqt_numerical_ability: r.nqt_numerical, nqt_reasoning_ability: r.nqt_reasoning,
+    nqt_advanced_quant_reasoning: r.nqt_advanced_quant, nqt_coding: r.nqt_coding, nqt_overall: r.nqt_overall
+  }));
+}
+function normalizeFromView(rows){ return rows; } // view columns already match
+
+function fmt(v){ return (v===null || v===undefined || isNaN(v)) ? null : Number(v); }
+
+function scoreColor(v){
+  if(v===null) return '#5C6879';
+  if(v>=60) return 'var(--green)';
+  if(v>=35) return 'var(--gold)';
+  return 'var(--red)';
+}
+
+/* ---------------- KPI strip ---------------- */
+function renderKPIs(){
+  const total = STUDENTS.length;
+  const hireVals = STUDENTS.map(s=>fmt(s.hire_overall)).filter(v=>v!==null);
+  const nqtVals = STUDENTS.map(s=>fmt(s.nqt_overall)).filter(v=>v!==null);
+  const eligible = STUDENTS.filter(s=>s.eligibility_status && s.eligibility_status.toLowerCase()==='eligible').length;
+  const avgHire = hireVals.length ? (hireVals.reduce((a,b)=>a+b,0)/hireVals.length) : null;
+  const avgNqt = nqtVals.length ? (nqtVals.reduce((a,b)=>a+b,0)/nqtVals.length) : null;
+  const below35 = STUDENTS.filter(s=>{const v=fmt(s.hire_overall); return v!==null && v<35;}).length;
+
+  const cards = [
+    {label:'Cohort size', value:total, sub:'BSC IT · final year', cls:''},
+    {label:'Eligibility confirmed', value:eligible, sub:`of ${total} students`, cls:'accent-teal'},
+    {label:'Avg HIRE overall', value: avgHire!==null? avgHire.toFixed(1)+'%':'—', sub:'FOP · DSA · Aptitude blend', cls:'accent-gold'},
+    {label:'Avg FPC NQT overall', value: avgNqt!==null? avgNqt.toFixed(1)+'%':'Not started', sub: nqtVals.length? `${nqtVals.length} recorded`:'Awaiting first assessment', cls:'accent-teal'},
+    {label:'Below readiness line', value: below35, sub:'HIRE overall < 35%', cls:'accent-red'},
+  ];
+  document.getElementById('kpis').innerHTML = cards.map(c=>`
+    <div class="kpi ${c.cls}">
+      <div class="label">${c.label}</div>
+      <div class="value">${c.value}</div>
+      <div class="sub">${c.sub}</div>
+    </div>`).join('');
+}
+
+/* ---------------- HIRE chart ---------------- */
+function renderHireChart(){
+  const ctx = document.getElementById('hireChart').getContext('2d');
+  const sorted = [...STUDENTS].sort((a,b)=> (fmt(b.hire_overall)||0)-(fmt(a.hire_overall)||0));
+  const labels = sorted.map(s=>s.student_name.split(' ')[0]);
+  const data = sorted.map(s=>fmt(s.hire_overall)||0);
+  const colors = data.map(v=> v>=60 ? '#5FBF7A' : v>=35 ? '#E3A857' : '#E5594E');
+
+  if(hireChartInstance) hireChartInstance.destroy();
+  hireChartInstance = new Chart(ctx, {
+    type:'bar',
+    data:{ labels, datasets:[{ data, backgroundColor:colors, borderRadius:4, maxBarThickness:22 }] },
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{display:false}, tooltip:{callbacks:{label:(c)=>`Overall: ${c.raw}%`}} },
+      scales:{
+        y:{ beginAtZero:true, max:100, grid:{color:'#232C38'}, ticks:{color:'#8A96A6', font:{size:10.5}} },
+        x:{ grid:{display:false}, ticks:{color:'#8A96A6', font:{size:10.5}, maxRotation:60, minRotation:60} }
+      }
+    }
+  });
+}
+
+/* ---------------- NQT panel ---------------- */
+function renderNqtPanel(){
+  const withData = STUDENTS.filter(s=>fmt(s.nqt_overall)!==null);
+  document.getElementById('nqtMeta').textContent = withData.length ? `${withData.length} of ${STUDENTS.length} assessed` : 'Not yet conducted';
+  const body = document.getElementById('nqtBody');
+  if(withData.length === 0){
+    body.innerHTML = `
+      <div class="empty-state">
+        <div class="ring">◌</div>
+        <strong>No FPC NQT scores recorded yet</strong>
+        <p>Verbal, Numerical, Reasoning, Advanced Quant &amp; Coding averages will populate this panel as soon as an assessment round is entered in <span class="mono">fpc_nqt_assessment</span>.</p>
+      </div>`;
+    return;
+  }
+  const dims = [
+    ['Verbal','nqt_verbal_ability'],['Numerical','nqt_numerical_ability'],
+    ['Reasoning','nqt_reasoning_ability'],['Adv. Quant','nqt_advanced_quant_reasoning'],
+    ['Coding','nqt_coding']
+  ];
+  const avg = dims.map(([label,key])=>{
+    const vals = withData.map(s=>fmt(s[key])).filter(v=>v!==null);
+    const a = vals.length? vals.reduce((x,y)=>x+y,0)/vals.length : 0;
+    return {label, a};
+  });
+  body.innerHTML = `<div class="chart-wrap" style="height:260px;"><canvas id="nqtChart"></canvas></div>`;
+  new Chart(document.getElementById('nqtChart').getContext('2d'), {
+    type:'bar',
+    data:{ labels:avg.map(a=>a.label), datasets:[{data:avg.map(a=>a.a.toFixed(1)), backgroundColor:'#4FC1B8', borderRadius:4}] },
+    options:{ indexAxis:'y', responsive:true, maintainAspectRatio:false,
+      plugins:{legend:{display:false}},
+      scales:{ x:{beginAtZero:true,max:100, grid:{color:'#232C38'}, ticks:{color:'#8A96A6'}}, y:{grid:{display:false}, ticks:{color:'#8A96A6'}} }
+    }
+  });
+}
+
+/* ---------------- Lane bar helper ---------------- */
+function laneBar(value, colorClass){
+  const v = fmt(value);
+  if(v===null){ return `<span class="nqt-empty-cell">— pending</span>`; }
+  const pct = Math.min(100, Math.max(0, v));
+  return `
+    <div class="lane">
+      <div class="lane-track">
+        <div class="lane-fill ${colorClass||''}" style="width:${pct}%; background:${scoreColor(v)}"></div>
+        <div class="lane-threshold"></div>
+      </div>
+      <div class="lane-label"><strong>${v}%</strong></div>
+    </div>`;
+}
+
+/* ---------------- Filters + table ---------------- */
+function populateFilters(){
+  const depts = [...new Set(STUDENTS.map(s=>s.department).filter(Boolean))];
+  const sel = document.getElementById('deptFilter');
+  sel.innerHTML = '<option value="">All departments</option>' + depts.map(d=>`<option value="${d}">${d}</option>`).join('');
+}
+
+function renderTable(){
+  const q = document.getElementById('searchBox').value.trim().toLowerCase();
+  const dept = document.getElementById('deptFilter').value;
+  const elig = document.getElementById('eligFilter').value;
+  const sortMode = document.getElementById('sortSelect').value;
+
+  let rows = STUDENTS.filter(s=>{
+    const matchesQ = !q || s.student_name.toLowerCase().includes(q) || (s.registration_number||'').toLowerCase().includes(q) || (s.email||'').toLowerCase().includes(q);
+    const matchesDept = !dept || s.department===dept;
+    const isEligible = s.eligibility_status && s.eligibility_status.toLowerCase()==='eligible';
+    const matchesElig = !elig || (elig==='Eligible' ? isEligible : !isEligible);
+    return matchesQ && matchesDept && matchesElig;
+  });
+
+  rows.sort((a,b)=>{
+    if(sortMode==='hire_overall_desc') return (fmt(b.hire_overall)||0)-(fmt(a.hire_overall)||0);
+    if(sortMode==='hire_overall_asc') return (fmt(a.hire_overall)||0)-(fmt(b.hire_overall)||0);
+    if(sortMode==='nqt_overall_desc') return (fmt(b.nqt_overall)||0)-(fmt(a.nqt_overall)||0);
+    return (a.s_no||0)-(b.s_no||0);
+  });
+
+  document.getElementById('rowCount').textContent = `${rows.length} of ${STUDENTS.length} students`;
+
+  document.getElementById('tableBody').innerHTML = rows.map(s=>{
+    const isEligible = s.eligibility_status && s.eligibility_status.toLowerCase()==='eligible';
+    return `
+    <tr>
+      <td>
+        <div class="student-name">${s.student_name}</div>
+        <div class="student-sub mono">${s.registration_number||''} · ${s.department||''}</div>
+      </td>
+      <td>
+        <span class="badge ${isEligible?'eligible':'pending'}">${isEligible?'Eligible':'Pending'}</span>
+        ${s.current_arrears>0 ? `<span class="badge arrears">${s.current_arrears} arrear${s.current_arrears>1?'s':''}</span>`:''}
+      </td>
+      <td>${s.communication_skill_level||'—'}</td>
+      <td>${laneBar(s.hire_fop)}</td>
+      <td>${laneBar(s.hire_dsa)}</td>
+      <td>${laneBar(s.hire_aptitude)}</td>
+      <td>${laneBar(s.hire_overall)}</td>
+      <td>${laneBar(s.nqt_overall,'teal')}</td>
+    </tr>`;
+  }).join('');
+}
+
+function renderAll(){
+  renderKPIs();
+  renderHireChart();
+  renderNqtPanel();
+  populateFilters();
+  renderTable();
+}
+
+/* ---------------- Boot ---------------- */
+(function init(){
+  const savedUrl = localStorage.getItem('fpc_sb_url');
+  const savedKey = localStorage.getItem('fpc_sb_key');
+  if(savedUrl && savedKey){
+    document.getElementById('sbUrl').value = savedUrl;
+    document.getElementById('sbKey').value = savedKey;
+    connectSupabase();
+  } else {
+    STUDENTS = normalizeFromLocal(LOCAL_DATA);
+    setStatus(false, 'Using local dataset · click to connect Supabase');
+    renderAll();
+  }
+})();
+</script>
+</body>
+</html>
