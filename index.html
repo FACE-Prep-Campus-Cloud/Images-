@@ -73,8 +73,10 @@
   .avatar-chip{
     width:36px;height:36px;border-radius:50%;background:var(--olive-deep);color:#fff;
     display:flex;align-items:center;justify-content:center;font-family:'Space Grotesk',sans-serif;
-    font-weight:600;font-size:13px;flex-shrink:0;
+    font-weight:600;font-size:13px;flex-shrink:0;overflow:hidden;
   }
+  .avatar-chip img{width:100%;height:100%;object-fit:cover;display:block;}
+  .avatar-chip.brand-chip{background:var(--olive-deep);}
 
   /* ---------- Greeting / hero stats ---------- */
   .hero{
@@ -324,6 +326,15 @@
     margin-bottom:18px;box-shadow:var(--shadow);
   }
   .back-link:hover{background:var(--card-soft);}
+  .profile-nav-btns{display:flex;gap:8px;margin-bottom:18px;flex-wrap:wrap;align-items:center;}
+  .profile-step-btn{
+    display:inline-flex;align-items:center;gap:6px;background:var(--card);border:1px solid var(--line);
+    color:var(--ink);font-size:13px;font-weight:600;padding:9px 16px;border-radius:100px;cursor:pointer;
+    box-shadow:var(--shadow);
+  }
+  .profile-step-btn:hover{background:var(--card-soft);}
+  .profile-step-btn:disabled{opacity:.45;cursor:not-allowed;}
+  .profile-step-counter{font-size:12.5px;color:var(--ink-soft);font-weight:600;}
   .profile-banner{
     position:relative;overflow:hidden;
     background:linear-gradient(135deg,var(--olive-deep) 0%, var(--olive) 55%, var(--lime-deep) 130%);
@@ -340,8 +351,9 @@
   .profile-avatar{
     width:68px;height:68px;border-radius:50%;background:rgba(255,255,255,.16);border:2px solid rgba(255,255,255,.5);
     display:flex;align-items:center;justify-content:center;font-family:'Space Grotesk',sans-serif;
-    font-size:24px;font-weight:700;flex-shrink:0;
+    font-size:24px;font-weight:700;flex-shrink:0;overflow:hidden;
   }
+  .profile-avatar img{width:100%;height:100%;object-fit:cover;display:block;}
   .profile-banner h2{font-size:22px;font-weight:700;}
   .profile-banner .p-loc{font-size:12.5px;opacity:.85;margin-top:4px;display:flex;align-items:center;gap:5px;}
   .profile-banner .p-bio{font-size:13px;opacity:.9;margin-top:8px;max-width:460px;line-height:1.5;}
@@ -415,7 +427,7 @@
   <div class="brand"><span class="dot-mark"></span>FPC · Placement Cell</div>
   <nav>
     <a class="nav-link active" data-view="dashboard" onclick="goDashboard(); return false;">Dashboard</a>
-    <a class="nav-link" data-view="dashboard" onclick="goStudents(); return false;">Students</a>
+    <a class="nav-link" data-view="students" onclick="goStudents(); return false;">Students</a>
     <a class="nav-link" data-view="reports" onclick="goReports(); return false;">Reports</a>
   </nav>
   <div class="topnav-right">
@@ -423,7 +435,7 @@
       <span class="dot" id="statusDot"></span>
       <span id="statusText">Connecting to Supabase…</span>
     </div>
-    <div class="avatar-chip">FP</div>
+    <div class="avatar-chip brand-chip">FP</div>
   </div>
 </div>
 
@@ -491,6 +503,18 @@
     <div class="chip-row" id="eligChips" style="flex-direction:row;flex-wrap:wrap;"></div>
   </div>
 
+  <footer>Data source: Supabase · <span class="mono">student_monitor_view</span> (defined in schema.sql / seed_data.sql)</footer>
+</div>
+
+<!-- ============================== STUDENTS VIEW (data only) ============================== -->
+<div class="view" id="viewStudents">
+  <div class="reports-head">
+    <div>
+      <h1>Students</h1>
+      <p>Full student roster — search, filter, and click a name to open their profile.</p>
+    </div>
+  </div>
+
   <div class="filters" id="studentsSection">
     <input type="text" id="searchBox" placeholder="Search by name, reg. no. or email…" oninput="renderTable()">
     <select id="deptFilter" onchange="renderTable()"><option value="">All departments</option></select>
@@ -534,11 +558,16 @@
 
 <!-- ============================== STUDENT PROFILE VIEW ============================== -->
 <div class="view" id="viewProfile">
-  <div class="back-link" onclick="goDashboard()">← Back to Dashboard</div>
+  <div class="profile-nav-btns">
+    <div class="back-link" onclick="goBackFromProfile()">← Back</div>
+    <button class="profile-step-btn" id="btnPrevStudent" onclick="stepProfile(-1)">‹ Previous</button>
+    <span class="profile-step-counter" id="profileStepCounter"></span>
+    <button class="profile-step-btn" id="btnNextStudent" onclick="stepProfile(1)">Next ›</button>
+  </div>
 
   <div class="profile-banner">
     <div class="profile-banner-left">
-      <div class="profile-avatar" id="pAvatar">—</div>
+      <div class="profile-avatar" id="pAvatar"></div>
       <div>
         <h2 id="pName">—</h2>
         <div class="p-loc">📍 <span id="pLoc">—</span></div>
@@ -676,7 +705,7 @@
   <div id="modalCard">
     <div class="modal-head">
       <div class="modal-head-left">
-        <div class="avatar-chip" id="modalAvatar">—</div>
+        <div class="avatar-chip" id="modalAvatar"></div>
         <div>
           <h3 id="modalName">—</h3>
           <div class="modal-sub" id="modalSub">—</div>
@@ -870,12 +899,15 @@
 const SUPABASE_URL = 'https://rfzhifhvtopdayhaiuct.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJmemhpZmh2dG9wZGF5aGFpdWN0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQ4ODEyNzYsImV4cCI6MjEwMDQ1NzI3Nn0.X3vTyKA0f--0lQ4_CreXDAMVSHcvOBiWxFAVi2sGHmw';
 
+const AVATAR_IMG = 'AVATAR_PLACEHOLDER';
+
 let STUDENTS = [];
 let hireChartInstance = null;
 let nqtChartInstance = null;
 let pDonutInstance = null;
 let currentEditRegNo = null;
 let currentProfileRegNo = null;
+let profileReturnView = 'viewDashboard';
 
 function sbHeaders(extraPrefer){
   const h = {
@@ -954,6 +986,10 @@ function initials(name){
   return ((parts[0]?.[0]||'') + (parts[1]?.[0]||'')).toUpperCase();
 }
 
+function avatarImgHtml(){
+  return `<img src="${AVATAR_IMG}" alt="Student avatar">`;
+}
+
 /* ---------------- View switching ---------------- */
 function setActiveNav(view){
   document.querySelectorAll('.nav-link').forEach(a=>{
@@ -970,17 +1006,20 @@ function goDashboard(){
   setActiveNav('dashboard');
 }
 function goStudents(){
-  showView('viewDashboard');
-  setActiveNav('dashboard');
-  setTimeout(()=>{
-    const el = document.getElementById('studentsSection');
-    if(el) el.scrollIntoView({behavior:'smooth', block:'start'});
-  }, 60);
+  showView('viewStudents');
+  setActiveNav('students');
+  renderTable();
 }
 function goReports(){
   showView('viewReports');
   setActiveNav('reports');
   renderReportsTable();
+}
+function goBackFromProfile(){
+  showView(profileReturnView);
+  if(profileReturnView === 'viewStudents'){ setActiveNav('students'); renderTable(); }
+  else if(profileReturnView === 'viewReports'){ setActiveNav('reports'); renderReportsTable(); }
+  else{ setActiveNav('dashboard'); }
 }
 
 /* ---------------- Hero stats + ring + flagged + elig chips ---------------- */
@@ -1027,7 +1066,7 @@ function renderFlagged(){
   }
   box.innerHTML = flagged.map(s=>`
     <div class="flag-item" style="background:rgba(255,255,255,.12);cursor:pointer;" onclick="viewProfile('${s.registration_number}')">
-      <div class="avatar-chip">${initials(s.student_name)}</div>
+      <div class="avatar-chip">${avatarImgHtml()}</div>
       <div class="fi-name" style="color:#fff;">${s.student_name}</div>
       <div class="fi-score" style="color:#FFD9C7;">${fmt(s.hire_overall)}%</div>
     </div>`).join('');
@@ -1125,7 +1164,7 @@ function laneBar(value, colorClass){
     </div>`;
 }
 
-/* ---------------- Filters + table (Dashboard) ---------------- */
+/* ---------------- Filters + table (Students view) ---------------- */
 function populateFilters(){
   const depts = [...new Set(STUDENTS.map(s=>s.department).filter(Boolean))];
   [document.getElementById('deptFilter'), document.getElementById('reportsDeptFilter')].forEach(sel=>{
@@ -1165,7 +1204,7 @@ function studentRowHtml(s){
     <tr>
       <td>
         <div class="student-cell">
-          <div class="avatar-chip" style="background:var(--olive);width:32px;height:32px;font-size:11.5px;">${initials(s.student_name)}</div>
+          <div class="avatar-chip" style="width:32px;height:32px;">${avatarImgHtml()}</div>
           <div>
             <div class="student-name" onclick="viewProfile('${s.registration_number}')">${s.student_name}</div>
             <div class="student-sub mono">${s.registration_number||''} · ${s.department||''}</div>
@@ -1239,13 +1278,57 @@ function metricBadge(v){
   return `<span class="metric-badge risk">At risk</span>`;
 }
 
-function viewProfile(regNo){
+function currentProfileList(){
+  // The ordered list the current profile was opened from, so Previous/Next
+  // step through the same rows the person was looking at.
+  if(profileReturnView === 'viewReports'){
+    return filterSortStudents('reportsSearchBox','reportsDeptFilter','reportsEligFilter','reportsSortSelect');
+  }
+  if(profileReturnView === 'viewStudents'){
+    return filterSortStudents('searchBox','deptFilter','eligFilter','sortSelect');
+  }
+  return STUDENTS;
+}
+
+function updateProfileStepControls(){
+  const list = currentProfileList();
+  const idx = list.findIndex(s => s.registration_number === currentProfileRegNo);
+  const counter = document.getElementById('profileStepCounter');
+  const prevBtn = document.getElementById('btnPrevStudent');
+  const nextBtn = document.getElementById('btnNextStudent');
+  if(idx === -1 || list.length === 0){
+    counter.textContent = '';
+    prevBtn.disabled = true;
+    nextBtn.disabled = true;
+    return;
+  }
+  counter.textContent = `${idx+1} of ${list.length}`;
+  prevBtn.disabled = idx <= 0;
+  nextBtn.disabled = idx >= list.length - 1;
+}
+
+function stepProfile(dir){
+  const list = currentProfileList();
+  const idx = list.findIndex(s => s.registration_number === currentProfileRegNo);
+  if(idx === -1) return;
+  const nextIdx = idx + dir;
+  if(nextIdx < 0 || nextIdx >= list.length) return;
+  viewProfile(list[nextIdx].registration_number, profileReturnView);
+}
+
+function viewProfile(regNo, fromView){
   const s = STUDENTS.find(x => x.registration_number === regNo);
   if(!s) return;
   currentProfileRegNo = regNo;
+  if(fromView){
+    profileReturnView = fromView;
+  } else {
+    const active = document.querySelector('.view.active');
+    if(active) profileReturnView = active.id;
+  }
   const isEligible = s.eligibility_status && s.eligibility_status.toLowerCase()==='eligible';
 
-  document.getElementById('pAvatar').textContent = initials(s.student_name);
+  document.getElementById('pAvatar').innerHTML = avatarImgHtml();
   document.getElementById('pName').textContent = s.student_name || '—';
   document.getElementById('pLoc').textContent = `${s.department || '—'} · ${s.registration_number || '—'}`;
   document.getElementById('pBio').textContent =
@@ -1329,6 +1412,7 @@ function viewProfile(regNo){
 
   showView('viewProfile');
   setActiveNav('');
+  updateProfileStepControls();
 }
 
 function pctTextSafe(v){ const n=fmt(v); return n===null?'—':`${n}%`; }
@@ -1360,7 +1444,7 @@ function openModal(regNo, startInEdit){
   currentEditRegNo = regNo;
   const isEligible = s.eligibility_status && s.eligibility_status.toLowerCase()==='eligible';
 
-  document.getElementById('modalAvatar').textContent = initials(s.student_name);
+  document.getElementById('modalAvatar').innerHTML = avatarImgHtml();
   document.getElementById('modalName').textContent = s.student_name;
   document.getElementById('modalSub').textContent = `${s.registration_number || '—'} · ${s.department || '—'}`;
 
@@ -1529,10 +1613,11 @@ async function saveEdit(){
 
     const wasProfileView = document.getElementById('viewProfile').classList.contains('active');
     const profileRegNo = currentProfileRegNo;
+    const savedReturnView = profileReturnView;
     await loadStudents();
     closeModal();
     if(wasProfileView && profileRegNo){
-      viewProfile(profileRegNo);
+      viewProfile(profileRegNo, savedReturnView);
     }
     showToast('Saved — dashboard updated.', false);
 
