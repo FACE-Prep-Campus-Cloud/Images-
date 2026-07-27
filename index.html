@@ -123,7 +123,8 @@
   tbody td{padding:12px 14px;border-bottom:1px solid var(--line);vertical-align:middle;}
   tbody tr:last-child td{border-bottom:none;}
   tbody tr:hover{background:var(--panel-2);}
-  .student-name{font-weight:600;}
+  .student-name{font-weight:600;cursor:pointer;}
+  .student-name:hover{color:var(--gold);text-decoration:underline;}
   .student-sub{color:var(--muted);font-size:11.5px;margin-top:2px;}
   .badge{
     display:inline-block;padding:3px 9px;border-radius:100px;font-size:11px;font-weight:600;
@@ -131,6 +132,51 @@
   .badge.eligible{background:rgba(46,145,85,.13);color:var(--green);}
   .badge.pending{background:rgba(103,112,124,.13);color:var(--muted);}
   .badge.arrears{background:rgba(199,67,58,.13);color:var(--red);font-weight:600;margin-left:6px;}
+
+  /* ---------- Student detail modal ---------- */
+  #modalOverlay{
+    display:none;position:fixed;inset:0;background:rgba(22,29,38,.45);
+    align-items:center;justify-content:center;z-index:100;padding:20px;
+  }
+  #modalOverlay.open{display:flex;}
+  #modalCard{
+    background:var(--panel);border-radius:14px;max-width:560px;width:100%;
+    max-height:86vh;overflow-y:auto;box-shadow:0 20px 60px rgba(22,29,38,.25);
+  }
+  .modal-head{
+    padding:22px 26px 16px;border-bottom:1px solid var(--line);
+    display:flex;justify-content:space-between;align-items:flex-start;gap:12px;
+  }
+  .modal-head h3{font-size:19px;font-weight:600;}
+  .modal-head .modal-sub{color:var(--muted);font-size:12.5px;margin-top:4px;font-family:'IBM Plex Mono',monospace;}
+  #modalClose{
+    background:var(--panel-2);border:none;width:30px;height:30px;border-radius:50%;
+    color:var(--muted);font-size:16px;cursor:pointer;flex-shrink:0;line-height:1;
+  }
+  #modalClose:hover{background:var(--line);color:var(--text);}
+  .modal-body{padding:20px 26px 26px;}
+  .modal-section{margin-bottom:20px;}
+  .modal-section:last-child{margin-bottom:0;}
+  .modal-section-label{
+    font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);
+    font-weight:600;margin-bottom:10px;
+  }
+  .modal-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px 20px;}
+  .modal-field{}
+  .modal-field .f-label{font-size:11.5px;color:var(--muted);margin-bottom:2px;}
+  .modal-field .f-value{font-size:14px;font-weight:600;}
+  .modal-field .f-value.mono{font-family:'IBM Plex Mono',monospace;font-weight:500;}
+  .modal-links{display:flex;flex-direction:column;gap:8px;}
+  .modal-link{
+    display:flex;align-items:center;gap:8px;padding:10px 12px;background:var(--panel-2);
+    border-radius:8px;font-size:13px;text-decoration:none;color:var(--text);
+  }
+  .modal-link:hover{background:var(--line);}
+  .modal-link .link-tag{
+    font-size:10.5px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);
+    background:var(--panel);padding:2px 7px;border-radius:5px;font-weight:600;
+  }
+  .modal-link.unavailable{color:var(--muted);font-style:italic;}
 
   /* Lane bar — signature element: score lane with pass-threshold tick */
   .lane{width:120px;}
@@ -228,6 +274,42 @@
 </div>
 
 <footer>Data source: Supabase · <span class="mono">student_monitor_view</span> (defined in schema.sql / seed_data.sql)</footer>
+
+<div id="modalOverlay" onclick="if(event.target===this) closeModal()">
+  <div id="modalCard">
+    <div class="modal-head">
+      <div>
+        <h3 id="modalName">—</h3>
+        <div class="modal-sub" id="modalSub">—</div>
+      </div>
+      <button id="modalClose" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="modal-section">
+        <div class="modal-section-label">Eligibility &amp; academics</div>
+        <div class="modal-grid">
+          <div class="modal-field"><div class="f-label">Eligibility status</div><div class="f-value" id="mEligibility">—</div></div>
+          <div class="modal-field"><div class="f-label">Current arrears / history</div><div class="f-value" id="mArrears">—</div></div>
+          <div class="modal-field"><div class="f-label">10th mark</div><div class="f-value" id="mTenth">—</div></div>
+          <div class="modal-field"><div class="f-label">12th mark</div><div class="f-value" id="mTwelfth">—</div></div>
+          <div class="modal-field"><div class="f-label">UG degree %</div><div class="f-value" id="mUg">—</div></div>
+          <div class="modal-field"><div class="f-label">PG degree %</div><div class="f-value" id="mPg">—</div></div>
+        </div>
+      </div>
+      <div class="modal-section">
+        <div class="modal-section-label">Contact</div>
+        <div class="modal-grid">
+          <div class="modal-field"><div class="f-label">Email ID</div><div class="f-value mono" id="mEmail">—</div></div>
+          <div class="modal-field"><div class="f-label">Registration number</div><div class="f-value mono" id="mRegNo">—</div></div>
+        </div>
+      </div>
+      <div class="modal-section">
+        <div class="modal-section-label">Profile links</div>
+        <div class="modal-links" id="mLinks"></div>
+      </div>
+    </div>
+  </div>
+</div>
 
 <script>
 /* ============================================================
@@ -417,7 +499,7 @@ function renderTable(){
     return `
     <tr>
       <td>
-        <div class="student-name">${s.student_name}</div>
+        <div class="student-name" onclick="openModal('${s.registration_number}')">${s.student_name}</div>
         <div class="student-sub mono">${s.registration_number||''} · ${s.department||''}</div>
       </td>
       <td>
@@ -441,6 +523,52 @@ function renderAll(){
   populateFilters();
   renderTable();
 }
+
+/* ---------------- Student detail modal ---------------- */
+function pctText(v){
+  const n = fmt(v);
+  return n===null ? '—' : `${n}%`;
+}
+
+function linkRow(tag, url){
+  const valid = url && /^https?:\/\//i.test(url.trim());
+  if(!valid){
+    return `<div class="modal-link unavailable"><span class="link-tag">${tag}</span> ${url ? url : 'Not provided'}</div>`;
+  }
+  return `<a class="modal-link" href="${url}" target="_blank" rel="noopener"><span class="link-tag">${tag}</span> ${url}</a>`;
+}
+
+function openModal(regNo){
+  const s = STUDENTS.find(x => x.registration_number === regNo);
+  if(!s) return;
+  const isEligible = s.eligibility_status && s.eligibility_status.toLowerCase()==='eligible';
+
+  document.getElementById('modalName').textContent = s.student_name;
+  document.getElementById('modalSub').textContent = `${s.registration_number || '—'} · ${s.department || '—'}`;
+  document.getElementById('mEligibility').innerHTML =
+    `<span class="badge ${isEligible?'eligible':'pending'}">${s.eligibility_status || 'Pending review'}</span>`;
+  document.getElementById('mArrears').textContent =
+    `${s.current_arrears ?? 0} current · ${s.history_of_arrears ?? 0} historical`;
+  document.getElementById('mTenth').textContent = pctText(s.tenth_mark);
+  document.getElementById('mTwelfth').textContent = pctText(s.twelfth_mark);
+  document.getElementById('mUg').textContent = pctText(s.ug_percentage);
+  document.getElementById('mPg').textContent = pctText(s.pg_percentage);
+  document.getElementById('mEmail').textContent = s.email || '—';
+  document.getElementById('mRegNo').textContent = s.registration_number || '—';
+
+  document.getElementById('mLinks').innerHTML =
+    linkRow('LinkedIn', s.linkedin_url) +
+    linkRow('Resume', s.resume_url) +
+    linkRow('GitHub', s.github_url);
+
+  document.getElementById('modalOverlay').classList.add('open');
+}
+
+function closeModal(){
+  document.getElementById('modalOverlay').classList.remove('open');
+}
+
+document.addEventListener('keydown', (e) => { if(e.key === 'Escape') closeModal(); });
 
 /* ---------------- Boot ---------------- */
 loadStudents();
