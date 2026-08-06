@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Ledger — Internal Audit Marking</title>
+<title>Campus Audit Ledger — Mentorship & Academic Review</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Spectral:ital,wght@0,400;0,500;0,600;0,700;1,400&family=IBM+Plex+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -80,7 +80,7 @@
 
   .meta-row{
     display:grid;
-    grid-template-columns: repeat(3, minmax(120px,1fr));
+    grid-template-columns: repeat(4, minmax(110px,1fr));
     gap: 14px;
     margin-top: 14px;
   }
@@ -347,19 +347,23 @@
 
   <div class="masthead">
     <div class="masthead-left">
-      <div class="eyebrow"><span class="dot"></span> INTERNAL AUDIT LEDGER · <span id="ledgerNo">No. 000</span></div>
-      <input class="title-input" id="auditTitle" value="Q3 Internal Controls Review" aria-label="Audit title">
+      <div class="eyebrow"><span class="dot"></span> CAMPUS AUDIT LEDGER · <span id="ledgerNo">No. 000</span></div>
+      <input class="title-input" id="auditTitle" value="Weekly Campus Audit — Mentorship & Academic Review" aria-label="Audit title">
       <div class="meta-row">
         <div class="meta-field">
-          <label for="fieldAuditor">Auditor</label>
-          <input id="fieldAuditor" placeholder="Name">
+          <label for="fieldStudent">Student Name</label>
+          <input id="fieldStudent" placeholder="Student name">
         </div>
         <div class="meta-field">
-          <label for="fieldDept">Department / Scope</label>
-          <input id="fieldDept" placeholder="e.g. Finance Ops">
+          <label for="fieldAuditor">Mentor Name</label>
+          <input id="fieldAuditor" placeholder="Mentor name">
         </div>
         <div class="meta-field">
-          <label for="fieldDate">Date</label>
+          <label for="fieldDept">Batch / Cohort</label>
+          <input id="fieldDept" placeholder="e.g. Batch 2026-A">
+        </div>
+        <div class="meta-field">
+          <label for="fieldDate">Week / Date</label>
           <input id="fieldDate" type="date">
         </div>
       </div>
@@ -382,9 +386,9 @@
   </div>
 
   <div class="legend">
-    <span><i class="lc"></i>Conforms</span>
-    <span><i class="lp"></i>Partial</span>
-    <span><i class="ln"></i>Non-conforming</span>
+    <span><i class="lc"></i>Completed</span>
+    <span><i class="lp"></i>Partially completed</span>
+    <span><i class="ln"></i>Not completed</span>
     <span><i class="la"></i>Not applicable</span>
   </div>
 
@@ -411,11 +415,11 @@
 (function(){
   "use strict";
 
-  const STORAGE_KEY = "audit-marking-state-v1";
+  const STORAGE_KEY = "campus-audit-state-v1";
   const MARKS = [
-    { key: "conform", label: "C", full: "CONFORMS", value: 1 },
+    { key: "conform", label: "C", full: "COMPLETED", value: 1 },
     { key: "partial", label: "PC", full: "PARTIAL", value: 0.5 },
-    { key: "nonconform", label: "NC", full: "NON-CONF.", value: 0 },
+    { key: "nonconform", label: "NC", full: "NOT DONE", value: 0 },
     { key: "na", label: "N/A", full: "N/A", value: null }
   ];
 
@@ -424,49 +428,54 @@
   function defaultState(){
     return {
       ledgerNo: String(Math.floor(1000 + Math.random()*8999)),
-      title: "Q3 Internal Controls Review",
+      title: "Weekly Campus Audit — Mentorship & Academic Review",
+      student: "",
       auditor: "",
       dept: "",
       date: new Date().toISOString().slice(0,10),
       sections: [
         {
-          id: uid(), name: "Governance & Policies",
+          id: uid(), name: "Mentorship Engagement",
           items: [
-            mkItem("Written policies reviewed and approved within the last 12 months", 3),
-            mkItem("Policy exceptions are documented and formally approved", 2),
-            mkItem("Segregation of duties enforced across key processes", 3)
+            mkItem("Mentor name recorded and session logged", 2),
+            mkItem("Weekly mentor-mentee meeting conducted", 3),
+            mkItem("Feedback from mentor documented", 2),
+            mkItem("Action items from previous week's session addressed", 2)
           ]
         },
         {
-          id: uid(), name: "Financial Controls",
+          id: uid(), name: "Weekly Plan Adherence",
           items: [
-            mkItem("Bank reconciliations performed monthly and reviewed by a second party", 3),
-            mkItem("Journal entries above threshold require dual approval", 2),
-            mkItem("Fixed asset register reconciled to general ledger quarterly", 2)
+            mkItem("Weekly plan completed as per schedule", 3),
+            mkItem("Daily targets met on time", 2),
+            mkItem("Deviations from plan documented and justified", 2),
+            mkItem("Next week's plan prepared and shared with mentor", 1)
           ]
         },
         {
-          id: uid(), name: "Compliance & Regulatory",
+          id: uid(), name: "Skill Development",
           items: [
-            mkItem("Required regulatory filings submitted on time", 3),
-            mkItem("Staff completed mandatory compliance training", 1),
-            mkItem("Whistleblower / complaint log reviewed by audit committee", 2)
+            mkItem("Technical skill milestone achieved for the week", 3),
+            mkItem("Hands-on project / lab work completed", 3),
+            mkItem("Soft skills / communication practice completed", 2),
+            mkItem("Self-learning resources (courses, articles, videos) completed", 1)
           ]
         },
         {
-          id: uid(), name: "IT & Data Security",
+          id: uid(), name: "Academic Tasks",
           items: [
-            mkItem("User access rights reviewed on a quarterly basis", 3),
-            mkItem("Backup and recovery procedures tested in the last 6 months", 3),
-            mkItem("Least-privilege access enforced for administrator accounts", 2)
+            mkItem("Quiz completed on time", 2),
+            mkItem("Quiz score meets expected benchmark", 2),
+            mkItem("Assignment submitted on time", 3),
+            mkItem("Assignment quality meets expected standard", 2)
           ]
         },
         {
-          id: uid(), name: "Risk Management",
+          id: uid(), name: "Attendance & Discipline",
           items: [
-            mkItem("Risk register updated within the last quarter", 2),
-            mkItem("Key risk indicators tracked and reported to leadership", 2),
-            mkItem("Business continuity plan tested annually", 2)
+            mkItem("Class / session attendance within acceptable limit", 2),
+            mkItem("Punctuality maintained for classes and sessions", 1),
+            mkItem("Code of conduct followed", 2)
           ]
         }
       ]
@@ -478,6 +487,7 @@
   }
 
   let state = load() || defaultState();
+  if(state.student === undefined) state.student = "";
 
   function load(){
     try{
@@ -539,6 +549,7 @@
   function render(){
     document.getElementById("ledgerNo").textContent = "No. " + state.ledgerNo;
     document.getElementById("auditTitle").value = state.title;
+    document.getElementById("fieldStudent").value = state.student;
     document.getElementById("fieldAuditor").value = state.auditor;
     document.getElementById("fieldDept").value = state.dept;
     document.getElementById("fieldDate").value = state.date;
@@ -693,6 +704,7 @@
 
   // ---------- header field bindings ----------
   document.getElementById("auditTitle").addEventListener("input", e => { state.title = e.target.value; save(true); });
+  document.getElementById("fieldStudent").addEventListener("input", e => { state.student = e.target.value; save(true); });
   document.getElementById("fieldAuditor").addEventListener("input", e => { state.auditor = e.target.value; save(true); });
   document.getElementById("fieldDept").addEventListener("input", e => { state.dept = e.target.value; save(true); });
   document.getElementById("fieldDate").addEventListener("input", e => { state.date = e.target.value; save(true); });
@@ -719,7 +731,7 @@
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = (state.title || "audit").replace(/[^a-z0-9\-]+/gi,"_") + "_ledger" + state.ledgerNo + ".json";
+    a.download = (state.title || "campus_audit").replace(/[^a-z0-9\-]+/gi,"_") + "_ledger" + state.ledgerNo + ".json";
     document.body.appendChild(a); a.click(); a.remove();
     URL.revokeObjectURL(url);
     toast("Exported JSON");
