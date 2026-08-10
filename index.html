@@ -287,19 +287,6 @@
   .form-field textarea{ resize:vertical; }
   .form-field input:focus-visible, .form-field select:focus-visible, .form-field textarea:focus-visible{ outline:2px solid var(--green); outline-offset:1px; }
 
-  .mentor-chips{ display:flex; flex-wrap:wrap; gap:6px; margin-top:2px; }
-  .mentor-chip{
-    border:1px solid var(--green-tint-border); background:var(--green-tint); color:var(--green-deep);
-    font-size:11.5px; font-weight:600; padding:5px 10px; border-radius:20px; cursor:pointer;
-    display:inline-flex; align-items:center; gap:6px;
-  }
-  .mentor-chip:hover{ background:var(--green); color:#fff; border-color:var(--green); }
-  .mentor-chip .mc-avatar{
-    width:16px; height:16px; border-radius:50%; display:flex; align-items:center; justify-content:center;
-    color:#fff; font-size:8px; font-weight:700; flex-shrink:0;
-  }
-  .mentor-chip-hint{ font-size:11px; color:var(--ink-faint); }
-
   .section-label{
     font-size:12.5px; font-weight:700; color:var(--ink-soft); margin: 20px 0 10px;
     display:flex; align-items:center; gap:8px;
@@ -471,6 +458,7 @@
       <h1 id="topbarTitle">Report & Audit Logs</h1>
       <div class="topbar-right">
         <div class="topbar-avatar">
+          <img src="" alt="FACE Prep Campus logo">
         </div>
       </div>
     </div>
@@ -529,8 +517,7 @@
           <div class="form-grid">
             <div class="form-field">
               <label for="wkEntryMentor">Mentor Name</label>
-              <input type="text" id="wkEntryMentor" list="mentorRegistryList" placeholder="Start typing or pick below" autocomplete="off">
-              <div class="mentor-chips" id="wkEntryChips"></div>
+              <input type="text" id="wkEntryMentor" placeholder="Enter mentor name">
             </div>
             <div class="form-field">
               <label for="wkEntryDate">Date of Marking</label>
@@ -585,8 +572,7 @@
           <div class="form-grid">
             <div class="form-field">
               <label for="skEntryMentor">Mentor Name</label>
-              <input type="text" id="skEntryMentor" list="mentorRegistryList" placeholder="Start typing or pick below" autocomplete="off">
-              <div class="mentor-chips" id="skEntryChips"></div>
+              <input type="text" id="skEntryMentor" placeholder="Enter mentor name">
             </div>
             <div class="form-field">
               <label for="skEntryDate">Date of Marking</label>
@@ -637,12 +623,15 @@
           <div class="form-grid">
             <div class="form-field">
               <label for="acEntryMentor">Mentor Name</label>
-              <input type="text" id="acEntryMentor" list="mentorRegistryList" placeholder="Start typing or pick below" autocomplete="off">
-              <div class="mentor-chips" id="acEntryChips"></div>
+              <input type="text" id="acEntryMentor" placeholder="Enter mentor name">
             </div>
             <div class="form-field">
               <label for="acEntryDate">Date of Marking</label>
               <input type="date" id="acEntryDate">
+            </div>
+            <div class="form-field full">
+              <label for="acEntrySubject">Academic Subject</label>
+              <input type="text" id="acEntrySubject" placeholder="e.g. Data Structures">
             </div>
             <div class="form-field">
               <label for="acEntryType">Task Type</label>
@@ -696,8 +685,7 @@
           <div class="form-grid">
             <div class="form-field">
               <label for="atEntryMentor">Mentor Name</label>
-              <input type="text" id="atEntryMentor" list="mentorRegistryList" placeholder="Start typing or pick below" autocomplete="off">
-              <div class="mentor-chips" id="atEntryChips"></div>
+              <input type="text" id="atEntryMentor" placeholder="Enter mentor name">
             </div>
             <div class="form-field">
               <label for="atEntryDate">Date of Marking</label>
@@ -752,8 +740,7 @@
           <div class="form-grid">
             <div class="form-field">
               <label for="adEntryMentor">Mentor Being Audited</label>
-              <input type="text" id="adEntryMentor" list="mentorRegistryList" placeholder="Start typing or pick below" autocomplete="off">
-              <div class="mentor-chips" id="adEntryChips"></div>
+              <input type="text" id="adEntryMentor" placeholder="Enter mentor name">
             </div>
             <div class="form-field">
               <label for="adEntryDate">Date of Audit</label>
@@ -761,8 +748,7 @@
             </div>
             <div class="form-field full">
               <label for="adEntryAuditor">Auditor (Reviewing Campus Manager)</label>
-              <input type="text" id="adEntryAuditor" list="auditorRegistryList" placeholder="Start typing or pick below" autocomplete="off">
-              <div class="mentor-chips" id="adEntryAuditorChips"></div>
+              <input type="text" id="adEntryAuditor" placeholder="Enter auditor name">
             </div>
           </div>
 
@@ -794,9 +780,6 @@
     <div id="page-dashboard" class="hidden"></div>
   </main>
 </div>
-
-<datalist id="mentorRegistryList"></datalist>
-<datalist id="auditorRegistryList"></datalist>
 
 <div class="toast" id="toast"></div>
 
@@ -928,112 +911,6 @@
     activityLog.push({ domain, uid, ts: Date.now() + activityLog.length });
   }
 
-  // ---------------- MENTOR REGISTRY (shared across every form) ----------------
-  // A mentor typed once anywhere becomes available everywhere else via
-  // autocomplete + one-click chips, so campus managers never retype a
-  // full name after the first time. Persisted in localStorage so it
-  // survives a page refresh; falls back to in-memory only if storage
-  // is unavailable.
-  const MENTOR_STORE_KEY = "campusaudit_mentor_registry_v1";
-  const AUDITOR_STORE_KEY = "campusaudit_auditor_registry_v1";
-
-  function loadRegistry(key){
-    try{
-      const raw = localStorage.getItem(key);
-      return raw ? JSON.parse(raw) : [];
-    }catch(e){ return []; }
-  }
-  function saveRegistry(key, arr){
-    try{ localStorage.setItem(key, JSON.stringify(arr)); }catch(e){ /* ignore */ }
-  }
-
-  // Each entry: { name, count, last }
-  let mentorRegistry = loadRegistry(MENTOR_STORE_KEY);
-  let auditorRegistry = loadRegistry(AUDITOR_STORE_KEY);
-
-  function touchRegistry(list, key, name){
-    name = name.trim();
-    if(!name) return list;
-    const existing = list.find(m => m.name.toLowerCase() === name.toLowerCase());
-    if(existing){
-      existing.count += 1;
-      existing.last = Date.now();
-      existing.name = name; // keep latest casing
-    } else {
-      list.push({ name, count: 1, last: Date.now() });
-    }
-    saveRegistry(key, list);
-    return list;
-  }
-  function rememberMentor(name){ mentorRegistry = touchRegistry(mentorRegistry, MENTOR_STORE_KEY, name); renderMentorRegistryUI(); }
-  function rememberAuditor(name){ auditorRegistry = touchRegistry(auditorRegistry, AUDITOR_STORE_KEY, name); renderMentorRegistryUI(); }
-
-  function sortedByRecent(list){
-    return list.slice().sort((a,b) => b.last - a.last);
-  }
-  function sortedByFrequent(list){
-    return list.slice().sort((a,b) => b.count - a.count || b.last - a.last);
-  }
-
-  function chipHtml(entry, targetInputId){
-    return `<button type="button" class="mentor-chip" data-fill-target="${targetInputId}" data-fill-name="${escapeAttr(entry.name)}">
-      <span class="mc-avatar" style="background:${avatarColor(entry.name)}">${initials(entry.name)}</span>${escapeHtml(entry.name)}
-    </button>`;
-  }
-
-  // Wires: chip container id -> the text input id it fills
-  const MENTOR_CHIP_TARGETS = [
-    { chips: "wkEntryChips", input: "wkEntryMentor" },
-    { chips: "skEntryChips", input: "skEntryMentor" },
-    { chips: "acEntryChips", input: "acEntryMentor" },
-    { chips: "atEntryChips", input: "atEntryMentor" },
-    { chips: "adEntryChips", input: "adEntryMentor" }
-  ];
-
-  function renderMentorRegistryUI(){
-    // datalists (typed autocomplete, works in every browser)
-    const mentorList = document.getElementById("mentorRegistryList");
-    mentorList.innerHTML = sortedByFrequent(mentorRegistry)
-      .map(m => `<option value="${escapeAttr(m.name)}"></option>`).join("");
-
-    const auditorList = document.getElementById("auditorRegistryList");
-    auditorList.innerHTML = sortedByFrequent(auditorRegistry)
-      .map(m => `<option value="${escapeAttr(m.name)}"></option>`).join("");
-
-    // one-tap recent-mentor chips under every mentor field
-    const recentMentors = sortedByRecent(mentorRegistry).slice(0, 6);
-    MENTOR_CHIP_TARGETS.forEach(t => {
-      const el = document.getElementById(t.chips);
-      if(!el) return;
-      el.innerHTML = recentMentors.length
-        ? recentMentors.map(m => chipHtml(m, t.input)).join("")
-        : `<span class="mentor-chip-hint">Type a mentor name once — it'll appear here for one-tap reuse next time.</span>`;
-    });
-
-    // auditor chips
-    const recentAuditors = sortedByRecent(auditorRegistry).slice(0, 6);
-    const auditorChipsEl = document.getElementById("adEntryAuditorChips");
-    if(auditorChipsEl){
-      auditorChipsEl.innerHTML = recentAuditors.length
-        ? recentAuditors.map(m => chipHtml(m, "adEntryAuditor")).join("")
-        : `<span class="mentor-chip-hint">Type an auditor name once — it'll appear here for one-tap reuse next time.</span>`;
-    }
-  }
-
-  // Click delegation for every mentor/auditor chip on the page
-  document.addEventListener("click", e => {
-    const chip = e.target.closest(".mentor-chip");
-    if(!chip) return;
-    const targetId = chip.dataset.fillTarget;
-    const name = chip.dataset.fillName;
-    const input = document.getElementById(targetId);
-    if(input){
-      input.value = name;
-      input.focus();
-      toast(name + " selected");
-    }
-  });
-
   const STATUS_MAP = {
     "Completed":"ok","Achieved":"ok",
     "Partial":"warn","In Progress":"warn",
@@ -1121,13 +998,14 @@
     },
     academic: {
       label: "Academic Tasks",
-      minWidth: 1500,
-      cols: ["Task ID","Mentor Name","Task Type","Task Name",
+      minWidth: 1620,
+      cols: ["Task ID","Mentor Name","Subject","Task Type","Task Name",
         ACADEMIC_SHORT.independent, ACADEMIC_SHORT.onTime, ACADEMIC_SHORT.verified, ACADEMIC_SHORT.reflectsWork,
         "Score","Remarks","Date of Marking","Status"],
       row(r){ return [
         r.id,
         mentorCell(r.mentor),
+        escapeHtml(r.subject || "—"),
         r.type, r.task,
         criteriaToggle("academic",r,"independent"), criteriaToggle("academic",r,"onTime"),
         criteriaToggle("academic",r,"verified"), criteriaToggle("academic",r,"reflectsWork"),
@@ -1135,7 +1013,7 @@
         r.date, pillCell(r.status)
       ]; },
       exportRow(r){ return [
-        r.id, r.mentor, r.type, r.task,
+        r.id, r.mentor, r.subject || "", r.type, r.task,
         r.criteria.independent ? "Yes" : "No", r.criteria.onTime ? "Yes" : "No",
         r.criteria.verified ? "Yes" : "No", r.criteria.reflectsWork ? "Yes" : "No",
         r.score + "/100", r.remarks || "", r.date, r.status
@@ -1476,7 +1354,6 @@
     DATA.weekly.unshift(row);
     recentWeeklyUids.push(row.uid);
     logActivity("weekly", row.uid);
-    rememberMentor(mentor);
     renderRecentWeekly();
 
     toast("Entry saved for " + mentor + " — visible in Reports & Audit Logs");
@@ -1552,7 +1429,6 @@
     DATA.skill.unshift(row);
     recentSkillUids.push(row.uid);
     logActivity("skill", row.uid);
-    rememberMentor(mentor);
     renderRecentSkill();
 
     toast("Entry saved for " + mentor + " — visible in Reports & Audit Logs");
@@ -1576,6 +1452,7 @@
   function resetAcademicEntryForm(){
     document.getElementById("acEntryMentor").value = "";
     document.getElementById("acEntryDate").value = todayIso();
+    document.getElementById("acEntrySubject").value = "";
     document.getElementById("acEntryType").value = "Quiz";
     document.getElementById("acEntryTask").value = "";
     document.getElementById("acEntryRemarks").value = "";
@@ -1598,7 +1475,7 @@
         <div class="rr-left">
           <div class="cell-avatar" style="background:${avatarColor(r.mentor)};width:24px;height:24px;font-size:9.5px;">${initials(r.mentor)}</div>
           <span class="rr-name">${escapeHtml(r.mentor)}</span>
-          <span class="rr-sub">${escapeHtml(r.task || "—")} · ${r.date}</span>
+          <span class="rr-sub">${escapeHtml(r.subject ? (r.subject + " · ") : "")}${escapeHtml(r.task || "—")} · ${r.date}</span>
         </div>
         <span class="pill ${STATUS_MAP[r.status] || 'warn'}">${r.status} · ${r.score}/100</span>
       </div>`;
@@ -1608,12 +1485,14 @@
   document.getElementById("acEntrySubmit").addEventListener("click", () => {
     const mentor = document.getElementById("acEntryMentor").value.trim();
     const dateIso = document.getElementById("acEntryDate").value;
+    const subject = document.getElementById("acEntrySubject").value.trim();
     const type = document.getElementById("acEntryType").value;
     const task = document.getElementById("acEntryTask").value.trim();
     const remarks = document.getElementById("acEntryRemarks").value.trim();
 
     if(!mentor){ toast("Enter a mentor name before saving"); document.getElementById("acEntryMentor").focus(); return; }
     if(!dateIso){ toast("Choose the date of marking before saving"); document.getElementById("acEntryDate").focus(); return; }
+    if(!subject){ toast("Enter the academic subject before saving"); document.getElementById("acEntrySubject").focus(); return; }
     if(!task){ toast("Enter the task name before saving"); document.getElementById("acEntryTask").focus(); return; }
     if(!remarks){ toast("Enter remarks before saving"); document.getElementById("acEntryRemarks").focus(); return; }
 
@@ -1622,7 +1501,7 @@
     const row = {
       uid: "acd-" + academicSeq,
       id: "#ACD-" + Math.floor(10000 + Math.random()*89999),
-      mentor, type, task,
+      mentor, subject, type, task,
       criteria, remarks,
       date: isoToDMY(dateIso)
     };
@@ -1630,7 +1509,6 @@
     DATA.academic.unshift(row);
     recentAcademicUids.push(row.uid);
     logActivity("academic", row.uid);
-    rememberMentor(mentor);
     renderRecentAcademic();
 
     toast("Entry saved for " + mentor + " — visible in Reports & Audit Logs");
@@ -1713,7 +1591,6 @@
     DATA.attendance.unshift(row);
     recentAttendanceUids.push(row.uid);
     logActivity("attendance", row.uid);
-    rememberMentor(mentor);
     renderRecentAttendance();
 
     toast("Entry saved for " + mentor + " — visible in Reports & Audit Logs");
@@ -1813,8 +1690,6 @@
     DATA.audit.unshift(row);
     recentAuditUids.push(row.uid);
     logActivity("audit", row.uid);
-    rememberMentor(mentor);
-    rememberAuditor(auditor);
     renderRecentAudits();
 
     toast("Audit saved for " + mentor + " — visible in Reports & Audit Logs");
@@ -2090,7 +1965,6 @@
     });
   }
 
-  renderMentorRegistryUI();
   populateWeeklyEntryStatics(); updateWeeklyScore(); renderRecentWeekly();
   populateSkillEntryStatics(); updateSkillScore(); renderRecentSkill();
   populateAcademicEntryStatics(); updateAcademicScore(); renderRecentAcademic();
