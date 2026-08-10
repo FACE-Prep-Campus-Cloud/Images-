@@ -68,8 +68,15 @@
     display:flex; align-items:center; justify-content:center;
   }
   .topbar-avatar img{ height:30px; width:auto; display:block; }
+  .mark-task-btn{
+    display:flex; align-items:center; gap:7px;
+    background: var(--green); color:#fff; border:none; border-radius:8px;
+    padding: 9px 16px; font-size:13px; font-weight:700; cursor:pointer;
+  }
+  .mark-task-btn:hover{ background: var(--green-deep); }
+  .mark-task-btn svg{ width:15px; height:15px; }
 
-  /* ================= TOP NAV STEPPER (replaces sidebar) ================= */
+  /* ================= TOP NAV (Dashboard / Reports — kept separate) ================= */
   .topnav-strip{
     display:flex; align-items:center; gap:0;
     padding: 16px 26px; border-bottom: 1px solid var(--border);
@@ -323,13 +330,17 @@
   .recent-row .rr-sub{ color:var(--ink-faint); }
   .recent-empty{ font-size:12.5px; color:var(--ink-faint); }
 
-  /* ================= FLOW STRIP (sequential gating) ================= */
+  /* ================= FLOW STRIP (sequential gating — opened by "Mark Task") ================= */
   .flow-strip{
     display:flex; align-items:center; gap:0; margin-top:14px; margin-bottom:2px;
   }
   .flow-strip.is-empty{ opacity:.55; }
   .flow-step{ display:flex; align-items:center; flex:1; min-width:0; }
   .flow-step:last-child{ flex:0 0 auto; }
+  .flow-step-btn{
+    display:flex; align-items:center; background:none; border:none; cursor:pointer; padding:2px; flex-shrink:0;
+  }
+  .flow-step-btn:focus-visible{ outline:2px solid var(--green); outline-offset:2px; border-radius:6px; }
   .flow-node{
     width:24px; height:24px; border-radius:50%; flex-shrink:0;
     display:flex; align-items:center; justify-content:center;
@@ -405,6 +416,7 @@
     .dash-hero-grid{ grid-template-columns: repeat(2,1fr); }
     .dash-two-col{ grid-template-columns: 1fr; }
     .topnav-label{ display:none; }
+    .mark-task-btn span.mtb-label{ display:none; }
   }
 
   @media print{
@@ -421,8 +433,12 @@
   <!-- ================= MAIN ================= -->
   <main class="main">
     <div class="topbar">
-      <h1 id="topbarTitle">Report & Audit Logs</h1>
+      <h1 id="topbarTitle">Dashboard</h1>
       <div class="topbar-right">
+        <button class="mark-task-btn" id="markTaskBtn" type="button">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          <span class="mtb-label">Mark Task</span>
+        </button>
         <div class="topbar-avatar">
           <img src="" alt="FACE Prep Campus logo">
         </div>
@@ -431,7 +447,7 @@
 
     <div class="topnav-strip" id="topNavStrip"></div>
 
-    <div id="page-reports">
+    <div id="page-reports" class="hidden">
       <div class="tabs" id="tabs">
         <button class="tab-btn active" data-tab="weekly">Weekly Plan Submissions</button>
         <button class="tab-btn" data-tab="skill">Skill Development</button>
@@ -901,6 +917,8 @@
   // ---------------- sequential flow gating helpers ----------------
   const FLOW_ORDER = ["weekly","skill","academic","attendance"];
   const FLOW_LABELS = { weekly: "Weekly Plan", skill: "Skill Dev.", academic: "Academic", attendance: "Attendance", audit: "Internal Audit" };
+  const FLOW_PAGE_MAP = { weekly: "weekly-entry", skill: "skill-entry", academic: "academic-entry", attendance: "attendance-entry", audit: "audit-entry" };
+  const FLOW_MENTOR_FIELD = { weekly: "wkEntryMentor", skill: "skEntryMentor", academic: "acEntryMentor", attendance: "atEntryMentor", audit: "adEntryMentor" };
   function normMentor(s){ return (s || "").trim().toLowerCase(); }
   function stageDone(domain, mentorName){
     const n = normMentor(mentorName);
@@ -923,6 +941,8 @@
     return null;
   }
   // renders the 4/5-step strip. currentDomain is one of FLOW_ORDER or "audit".
+  // Every step is clickable — clicking jumps straight to that stage's entry page,
+  // carrying the mentor name across so the flow feels continuous end-to-end.
   function renderFlowStrip(containerId, mentorName, currentDomain){
     const el = document.getElementById(containerId);
     if(!el) return;
@@ -942,13 +962,26 @@
         : String(i+1);
       const isLast = i === steps.length - 1;
       return `<div class="flow-step ${cls}">
-          <div class="flow-node">${node}</div>
-          <span class="flow-label">${FLOW_LABELS[d]}</span>
+          <button type="button" class="flow-step-btn" data-domain="${d}">
+            <div class="flow-node">${node}</div>
+            <span class="flow-label">${FLOW_LABELS[d]}</span>
+          </button>
           ${isLast ? "" : `<div class="flow-line"></div>`}
         </div>`;
     }).join("");
 
     el.innerHTML = `<div class="flow-strip ${hasMentor ? "" : "is-empty"}">${stepsHtml}</div>`;
+
+    el.querySelectorAll(".flow-step-btn").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const d = btn.dataset.domain;
+        if(hasMentor){
+          const field = document.getElementById(FLOW_MENTOR_FIELD[d]);
+          if(field) field.value = mentorName;
+        }
+        navigateTo(FLOW_PAGE_MAP[d]);
+      });
+    });
 
     // hint line
     let hintEl = el.nextElementSibling;
@@ -1416,8 +1449,11 @@
     logActivity("weekly", row.uid);
     renderRecentWeekly();
 
-    toast("Entry saved for " + mentor + " — Skill Development is now unlocked for this mentor.");
+    toast("Entry saved for " + mentor + " — moving on to Skill Development.");
     resetWeeklyEntryForm();
+    navigateTo("skill-entry");
+    document.getElementById("skEntryMentor").value = mentor;
+    renderFlowStrip("skFlowStrip", mentor, "skill");
   });
   document.getElementById("wkEntryReset").addEventListener("click", resetWeeklyEntryForm);
 
@@ -1497,8 +1533,11 @@
     logActivity("skill", row.uid);
     renderRecentSkill();
 
-    toast("Entry saved for " + mentor + " — Academic Tasks is now unlocked for this mentor.");
+    toast("Entry saved for " + mentor + " — moving on to Academic Tasks.");
     resetSkillEntryForm();
+    navigateTo("academic-entry");
+    document.getElementById("acEntryMentor").value = mentor;
+    renderFlowStrip("acFlowStrip", mentor, "academic");
   });
   document.getElementById("skEntryReset").addEventListener("click", resetSkillEntryForm);
 
@@ -1584,8 +1623,11 @@
     logActivity("academic", row.uid);
     renderRecentAcademic();
 
-    toast("Entry saved for " + mentor + " — Attendance is now unlocked for this mentor.");
+    toast("Entry saved for " + mentor + " — moving on to Attendance.");
     resetAcademicEntryForm();
+    navigateTo("attendance-entry");
+    document.getElementById("atEntryMentor").value = mentor;
+    renderFlowStrip("atFlowStrip", mentor, "attendance");
   });
   document.getElementById("acEntryReset").addEventListener("click", resetAcademicEntryForm);
 
@@ -1674,8 +1716,11 @@
     logActivity("attendance", row.uid);
     renderRecentAttendance();
 
-    toast("Entry saved for " + mentor + " — Internal Audit is now unlocked for this mentor.");
+    toast("Entry saved for " + mentor + " — moving on to Internal Audit.");
     resetAttendanceEntryForm();
+    navigateTo("audit-entry");
+    document.getElementById("adEntryMentor").value = mentor;
+    renderFlowStrip("adFlowStrip", mentor, "audit");
   });
   document.getElementById("atEntryReset").addEventListener("click", resetAttendanceEntryForm);
 
@@ -1783,6 +1828,7 @@
 
     toast("Audit saved for " + mentor + " — visible in Reports & Audit Logs");
     resetAuditEntryForm();
+    navigateTo("reports", "audit");
   });
   document.getElementById("adEntryReset").addEventListener("click", resetAuditEntryForm);
 
@@ -1798,25 +1844,24 @@
   };
   const PAGE_IDS = ["reports","weekly-entry","skill-entry","academic-entry","attendance-entry","audit-entry","dashboard"];
 
-  // Top navigation stepper — replaces the old sidebar. Order mirrors the
-  // mentor review flow (Weekly Plan -> Skill Dev -> Academic -> Attendance -> Internal Audit),
-  // with Dashboard and Reports bookending it.
+  // Top navigation is intentionally simple: Dashboard and Reports & Logs are
+  // the two standalone destinations, kept separate from the marking flow.
+  // The mentor review flow (Weekly Plan -> Skill Dev -> Academic -> Attendance
+  // -> Internal Audit) only opens when "Mark Task" is clicked, or via the flow
+  // strip inside an entry page once that flow has been started.
   const TOP_NAV = [
-    { page: "dashboard",         label: "Dashboard" },
-    { page: "weekly-entry",      label: "Weekly Plan" },
-    { page: "skill-entry",       label: "Skill Dev." },
-    { page: "academic-entry",    label: "Academic" },
-    { page: "attendance-entry",  label: "Attendance" },
-    { page: "audit-entry",       label: "Internal Audit" },
-    { page: "reports",           label: "Reports & Logs", tab: "weekly" }
+    { page: "dashboard", label: "Dashboard" },
+    { page: "reports",   label: "Reports & Logs", tab: "weekly" }
   ];
-  let currentPage = "reports";
+  const ENTRY_PAGES = ["weekly-entry","skill-entry","academic-entry","attendance-entry","audit-entry"];
+  const ENTRY_PAGES_SET = new Set(ENTRY_PAGES);
+  let currentPage = "dashboard";
 
   function renderTopNav(){
     const el = document.getElementById("topNavStrip");
     if(!el) return;
     el.innerHTML = TOP_NAV.map((item,i) => {
-      const isCurrent = item.page === currentPage;
+      const isCurrent = item.page === currentPage || (item.page === "reports" && ENTRY_PAGES_SET.has(currentPage));
       const isLast = i === TOP_NAV.length - 1;
       return `<div class="topnav-step ${isCurrent ? "current" : ""}">
           <button type="button" class="topnav-btn" data-page="${item.page}" ${item.tab ? `data-tab="${item.tab}"` : ""}>
@@ -1841,8 +1886,6 @@
     renderTopNav();
   }
 
-  const ENTRY_PAGES = ["weekly-entry","skill-entry","academic-entry","attendance-entry","audit-entry"];
-
   function navigateTo(page, tab){
     if(page === "reports"){
       showPage("reports");
@@ -1865,6 +1908,13 @@
       return;
     }
   }
+
+  // "Mark Task" is the single entry point into the review flow — clicking it
+  // starts fresh at step 1 (Weekly Plan), separate from Dashboard/Reports.
+  document.getElementById("markTaskBtn").addEventListener("click", () => {
+    resetWeeklyEntryForm();
+    navigateTo("weekly-entry");
+  });
 
   // ---------------- dashboard ----------------
   function goToReportsTab(tab){
@@ -2084,7 +2134,7 @@
   populateAttendanceEntryStatics(); updateAttendanceScore(); renderRecentAttendance();
   populateAuditEntryStatics(); updateAuditEntryOverall(); renderRecentAudits();
   renderTopNav();
-  render();
+  navigateTo("dashboard");
 })();
 </script>
 </body>
