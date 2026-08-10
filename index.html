@@ -407,6 +407,20 @@
   .flow-hint.blocked{ color:var(--red-ink); font-weight:600; }
   .flow-hint.ready{ color:var(--green-ink2); font-weight:600; }
 
+  /* ================= MODAL (mentor loop / audit queue prompts) ================= */
+  .modal-overlay{
+    position: fixed; inset:0; background: rgba(20,22,26,0.45);
+    display:flex; align-items:center; justify-content:center;
+    z-index: 100; padding: 20px;
+  }
+  .modal-box{
+    background: var(--card); border-radius: var(--radius); max-width: 420px; width:100%;
+    padding: 24px 24px 20px; box-shadow: 0 12px 32px rgba(16,24,40,0.18);
+  }
+  .modal-box h3{ margin:0 0 8px; font-size:15.5px; font-weight:700; color:var(--ink); }
+  .modal-box p{ margin:0 0 18px; font-size:13px; color:var(--ink-soft); line-height:1.55; }
+  .modal-actions{ display:flex; align-items:center; justify-content:flex-end; gap:10px; flex-wrap:wrap; }
+
   /* ================= DASHBOARD ================= */
   .dash-wrap{ padding: 22px 26px 34px; display:flex; flex-direction:column; gap:26px; }
 
@@ -851,13 +865,17 @@
       <div class="entry-wrap">
         <div class="entry-card">
           <h2>Mark Task</h2>
-          <p class="entry-sub">Enter the mentor's name to start or continue their daily review. The flow runs in order — Weekly Plan, Skill Development, Academic Tasks, then Attendance — each step unlocking once the one before it is logged for this mentor. Internal Audit becomes available once all four are complete.</p>
+          <p class="entry-sub" id="mfEntrySub">Enter the mentor's name to start or continue their daily review. The flow runs in order — Weekly Plan, Skill Development, Academic Tasks, then Attendance — each step unlocking once the one before it is logged for this mentor. Internal Audit becomes available once all four are complete.</p>
 
           <div class="form-grid">
             <div class="form-field full">
               <label for="mfEntryMentor">Mentor Name</label>
               <input type="text" id="mfEntryMentor" placeholder="Enter mentor name to start or continue their review flow">
             </div>
+          </div>
+
+          <div class="entry-actions">
+            <button class="btn-primary" id="mfEntryContinue">Continue</button>
           </div>
 
           <div id="mfFlowStrip"></div>
@@ -870,6 +888,14 @@
 </div>
 
 <div class="toast" id="toast"></div>
+
+<div class="modal-overlay hidden" id="modalOverlay">
+  <div class="modal-box">
+    <h3 id="modalTitle"></h3>
+    <p id="modalMessage"></p>
+    <div class="modal-actions" id="modalActions"></div>
+  </div>
+</div>
 
 <script>
 (function(){
@@ -890,6 +916,26 @@
   function avatarColor(name){
     let h=0; for(let i=0;i<name.length;i++) h = (h*31 + name.charCodeAt(i)) >>> 0;
     return AVATAR_COLORS[h % AVATAR_COLORS.length];
+  }
+
+  // ---------------- generic modal ----------------
+  function showModal(title, message, buttons){
+    document.getElementById("modalTitle").textContent = title;
+    document.getElementById("modalMessage").textContent = message;
+    const actions = document.getElementById("modalActions");
+    actions.innerHTML = "";
+    buttons.forEach(b => {
+      const btn = document.createElement("button");
+      btn.className = b.primary ? "btn-primary" : "btn-secondary";
+      btn.textContent = b.label;
+      btn.type = "button";
+      btn.addEventListener("click", () => { closeModal(); if(b.onClick) b.onClick(); });
+      actions.appendChild(btn);
+    });
+    document.getElementById("modalOverlay").classList.remove("hidden");
+  }
+  function closeModal(){
+    document.getElementById("modalOverlay").classList.add("hidden");
   }
 
   // ---------------- genuineness question sets ----------------
@@ -1013,6 +1059,7 @@
   const FLOW_LABELS = { weekly: "Weekly Plan", skill: "Skill Dev.", academic: "Academic", attendance: "Attendance", audit: "Internal Audit" };
   const FLOW_PAGE_MAP = { weekly: "weekly-entry", skill: "skill-entry", academic: "academic-entry", attendance: "attendance-entry", audit: "audit-entry" };
   const FLOW_MENTOR_FIELD = { weekly: "wkEntryMentor", skill: "skEntryMentor", academic: "acEntryMentor", attendance: "atEntryMentor", audit: "adEntryMentor" };
+  const FLOW_STRIP_ID = { weekly: "wkFlowStrip", skill: "skFlowStrip", academic: "acFlowStrip", attendance: "atFlowStrip", audit: "adFlowStrip" };
   function normMentor(s){ return (s || "").trim().toLowerCase(); }
   function stageDone(domain, mentorName){
     const n = normMentor(mentorName);
@@ -1033,6 +1080,13 @@
       if(!stageDone(d, mentorName)) return d;
     }
     return null;
+  }
+  // returns the first stage in FLOW_ORDER not yet completed for this mentor, or "audit" if all four are done
+  function firstIncompleteStage(mentorName){
+    for(const d of FLOW_ORDER){
+      if(!stageDone(d, mentorName)) return d;
+    }
+    return "audit";
   }
   // renders the 4/5-step strip. currentDomain is one of FLOW_ORDER or "audit".
   // Every step is clickable — clicking jumps straight to that stage's entry page,
@@ -1775,6 +1829,28 @@
     }).join("");
   }
 
+  // Queue of mentors who finished Weekly->Skill->Academic->Attendance and are waiting to be audited
+  let pendingAuditQueue = [];
+  function enqueueForAudit(mentor){
+    const n = normMentor(mentor);
+    if(!pendingAuditQueue.some(m => normMentor(m) === n)) pendingAuditQueue.push(mentor);
+  }
+  function dequeueAuditedMentor(mentor){
+    const n = normMentor(mentor);
+    pendingAuditQueue = pendingAuditQueue.filter(m => normMentor(m) !== n);
+  }
+  function startAuditQueue(){
+    if(pendingAuditQueue.length === 0){
+      toast("No mentors pending Internal Audit right now.");
+      navigateTo("dashboard");
+      return;
+    }
+    const next = pendingAuditQueue[0];
+    navigateTo("audit-entry");
+    document.getElementById("adEntryMentor").value = next;
+    renderFlowStrip("adFlowStrip", next, "audit");
+  }
+
   document.getElementById("atEntrySubmit").addEventListener("click", () => {
     const mentor = document.getElementById("atEntryMentor").value.trim();
     const dateIso = document.getElementById("atEntryDate").value;
@@ -1809,12 +1885,24 @@
     recentAttendanceUids.push(row.uid);
     logActivity("attendance", row.uid);
     renderRecentAttendance();
+    enqueueForAudit(mentor);
 
-    toast("Entry saved for " + mentor + " — moving on to Internal Audit.");
     resetAttendanceEntryForm();
-    navigateTo("audit-entry");
-    document.getElementById("adEntryMentor").value = mentor;
-    renderFlowStrip("adFlowStrip", mentor, "audit");
+
+    // Instead of auto-jumping to audit, ask whether there's another mentor to review first.
+    showModal(
+      "Attendance completed for " + mentor,
+      "Weekly Plan, Skill Development, Academic Tasks and Attendance are all done for " + mentor + ". Is there another mentor to review today, or should we move on to Internal Audit?",
+      [
+        { label: "Add Another Mentor", onClick: () => {
+            resetMarkFlowForm();
+            navigateTo("mark-flow");
+          } },
+        { label: "Proceed to Internal Audit", primary: true, onClick: () => {
+            startAuditQueue();
+          } }
+      ]
+    );
   });
   document.getElementById("atEntryReset").addEventListener("click", resetAttendanceEntryForm);
 
@@ -1919,10 +2007,29 @@
     recentAuditUids.push(row.uid);
     logActivity("audit", row.uid);
     renderRecentAudits();
+    dequeueAuditedMentor(mentor);
 
-    toast("Audit saved for " + mentor + " — visible in Reports & Audit Logs");
     resetAuditEntryForm();
-    navigateTo("reports", "audit");
+
+    if(pendingAuditQueue.length > 0){
+      const nextMentor = pendingAuditQueue[0];
+      showModal(
+        "Audit saved for " + mentor,
+        "Up next: " + nextMentor + ". Continue straight into their Internal Audit?",
+        [
+          { label: "Go to Reports", onClick: () => { navigateTo("reports", "audit"); } },
+          { label: "Continue to " + nextMentor, primary: true, onClick: () => { startAuditQueue(); } }
+        ]
+      );
+    } else {
+      showModal(
+        "Review complete",
+        "Internal Audit saved for " + mentor + ". Every mentor in today's review has now been through Weekly Plan, Skill Development, Academic Tasks, Attendance and Internal Audit.",
+        [
+          { label: "Return to Dashboard", primary: true, onClick: () => { navigateTo("dashboard"); } }
+        ]
+      );
+    }
   });
   document.getElementById("adEntryReset").addEventListener("click", resetAuditEntryForm);
 
@@ -2009,9 +2116,9 @@
   }
 
   // "Mark Task" is the single entry point into the review flow. Clicking it
-  // opens a flow overview showing all four stages — Weekly Plan, Skill
-  // Development, Academic Tasks, Attendance — for the mentor you type in,
-  // so you can jump straight to whichever stage they need next.
+  // opens a flow overview asking for the mentor's name; clicking Continue
+  // jumps straight to whichever stage that mentor still needs — Weekly Plan
+  // first for a brand-new mentor, or further along if they're resuming.
   function resetMarkFlowForm(){
     document.getElementById("mfEntryMentor").value = "";
     renderFlowStrip("mfFlowStrip", "", "audit");
@@ -2022,6 +2129,17 @@
   document.getElementById("markTaskBtn").addEventListener("click", () => {
     resetMarkFlowForm();
     navigateTo("mark-flow");
+  });
+  document.getElementById("mfEntryContinue").addEventListener("click", () => {
+    const mentor = document.getElementById("mfEntryMentor").value.trim();
+    if(!mentor){ toast("Enter a mentor name to continue"); document.getElementById("mfEntryMentor").focus(); return; }
+    const stage = firstIncompleteStage(mentor);
+    const page = FLOW_PAGE_MAP[stage];
+    navigateTo(page);
+    const field = document.getElementById(FLOW_MENTOR_FIELD[stage]);
+    if(field) field.value = mentor;
+    renderFlowStrip(FLOW_STRIP_ID[stage], mentor, stage);
+    if(stage === "audit") enqueueForAudit(mentor);
   });
 
   // ---------------- dashboard ----------------
