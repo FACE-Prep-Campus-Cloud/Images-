@@ -816,12 +816,12 @@
       <div class="entry-wrap">
         <div class="entry-card">
           <h2>Internal Audit Entry</h2>
-          <p class="entry-sub">Use this when you and another campus manager sit down to review a mentor's work. This is the final step of the review flow — it unlocks only once Weekly Plan, Skill Development, Academic Tasks, and Attendance have all been completed for this mentor. Confirm whether each was genuinely completed, then save — the record appears immediately under Reports &amp; Audit Logs → Internal Audit so it can be checked again on the next daily review.</p>
+          <p class="entry-sub">Use this when you and another campus manager sit down to review a campus manager's work. This is the final step of the review flow — it unlocks only once Weekly Plan, Skill Development, Academic Tasks, and Attendance have all been completed for this campus manager. Confirm whether each was genuinely completed, add your audit notes (required), then save — the record appears immediately under Reports &amp; Audit Logs → Internal Audit so it can be checked again on the next daily review.</p>
 
           <div class="form-grid">
             <div class="form-field">
-              <label for="adEntryMentor">Mentor Being Audited</label>
-              <input type="text" id="adEntryMentor" placeholder="Enter mentor name">
+              <label for="adEntryMentor">Campus Manager Being Audited</label>
+              <input type="text" id="adEntryMentor" placeholder="Enter campus manager name">
             </div>
             <div class="form-field">
               <label for="adEntryDate">Date of Audit</label>
@@ -838,7 +838,7 @@
           <div class="criteria-grid" id="adEntryCriteria"></div>
 
           <div class="form-field full" style="margin-top:14px;">
-            <label for="adEntryNotes">Audit Notes (optional)</label>
+            <label for="adEntryNotes">Audit Notes</label>
             <textarea id="adEntryNotes" rows="3" placeholder="Remarks from the audit discussion, e.g. why something was marked Not Completed..."></textarea>
           </div>
 
@@ -1983,13 +1983,14 @@
     const auditor = document.getElementById("adEntryAuditor").value.trim();
     const notes = document.getElementById("adEntryNotes").value.trim();
 
-    if(!mentor){ toast("Enter the mentor being audited"); document.getElementById("adEntryMentor").focus(); return; }
-    if(!stageDone("weekly", mentor)){ toast("This mentor's Weekly Plan hasn't been completed yet"); document.getElementById("adEntryMentor").focus(); return; }
-    if(!stageDone("skill", mentor)){ toast("This mentor's Skill Development hasn't been completed yet"); document.getElementById("adEntryMentor").focus(); return; }
-    if(!stageDone("academic", mentor)){ toast("This mentor's Academic Tasks haven't been completed yet"); document.getElementById("adEntryMentor").focus(); return; }
-    if(!stageDone("attendance", mentor)){ toast("This mentor's Attendance hasn't been completed yet"); document.getElementById("adEntryMentor").focus(); return; }
+    if(!mentor){ toast("Enter the campus manager being audited"); document.getElementById("adEntryMentor").focus(); return; }
+    if(!stageDone("weekly", mentor)){ toast("This campus manager's Weekly Plan hasn't been completed yet"); document.getElementById("adEntryMentor").focus(); return; }
+    if(!stageDone("skill", mentor)){ toast("This campus manager's Skill Development hasn't been completed yet"); document.getElementById("adEntryMentor").focus(); return; }
+    if(!stageDone("academic", mentor)){ toast("This campus manager's Academic Tasks haven't been completed yet"); document.getElementById("adEntryMentor").focus(); return; }
+    if(!stageDone("attendance", mentor)){ toast("This campus manager's Attendance hasn't been completed yet"); document.getElementById("adEntryMentor").focus(); return; }
     if(!dateIso){ toast("Choose the date the audit was conducted"); document.getElementById("adEntryDate").focus(); return; }
     if(!auditor){ toast("Enter the auditor (reviewing campus manager)"); document.getElementById("adEntryAuditor").focus(); return; }
+    if(!notes){ toast("Enter audit notes before saving"); document.getElementById("adEntryNotes").focus(); return; }
 
     auditSeq++;
     const row = {
