@@ -376,7 +376,7 @@
   .recent-row .rr-sub{ color:var(--ink-faint); }
   .recent-empty{ font-size:12.5px; color:var(--ink-faint); }
 
-  /* ================= FLOW STRIP (sequential gating — opened by "Mark Task") ================= */
+  /* ================= FLOW STRIP (sequential gating — opened by "Record Audit") ================= */
   .flow-strip{
     display:flex; align-items:center; gap:0; margin-top:14px; margin-bottom:2px;
   }
@@ -517,7 +517,7 @@
     </div>
 
     <div class="sidebar-footer">
-      <div class="sidebar-footer-hint">Use <strong>Mark Task</strong> above the page title to run a mentor through the Weekly Plan → Skill Development → Academic Tasks → Attendance review flow.</div>
+      <div class="sidebar-footer-hint">Use <strong>Record Audit</strong> above the page title to run a mentor through the Weekly Plan → Skill Development → Academic Tasks → Attendance review flow.</div>
     </div>
   </aside>
 
@@ -528,7 +528,7 @@
       <div class="topbar-right">
         <button class="mark-task-btn" id="markTaskBtn" type="button">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-          <span class="mtb-label">Mark Task</span>
+          <span class="mtb-label">Record Audit</span>
         </button>
         <div class="topbar-avatar">
           <img src="" alt="FACE Prep Campus logo">
@@ -864,7 +864,7 @@
     <div id="page-mark-flow" class="hidden">
       <div class="entry-wrap">
         <div class="entry-card">
-          <h2>Mark Task</h2>
+          <h2>Record Audit</h2>
           <p class="entry-sub" id="mfEntrySub">Enter the mentor's name to start or continue their daily review. The flow runs in order — Weekly Plan, Skill Development, Academic Tasks, then Attendance — each step unlocking once the one before it is logged for this mentor. Internal Audit becomes available once all four are complete.</p>
 
           <div class="form-grid">
@@ -2037,7 +2037,7 @@
   // ---------------- page routing ----------------
   const PAGE_TITLES = {
     "reports": "Report & Audit Logs",
-    "mark-flow": "Mark Task",
+    "mark-flow": "Record Audit",
     "weekly-entry": "Weekly Plan Entry",
     "skill-entry": "Skill Development Entry",
     "academic-entry": "Academic Task Entry",
@@ -2050,7 +2050,7 @@
   // Sidebar navigation holds the two standalone destinations, Dashboard and
   // Reports & Logs. The mentor review flow (Weekly Plan -> Skill Dev ->
   // Academic -> Attendance -> Internal Audit) is a separate track: it only
-  // opens when "Mark Task" is clicked, landing on a flow overview that shows
+  // opens when "Record Audit" is clicked, landing on a flow overview that shows
   // all four stages (plus Internal Audit once they're done) and lets you jump
   // into any of them, or via the flow strip inside an entry page once that
   // flow has been started.
@@ -2116,7 +2116,7 @@
     }
   }
 
-  // "Mark Task" is the single entry point into the review flow. Clicking it
+  // "Record Audit" is the single entry point into the review flow. Clicking it
   // opens a flow overview asking for the mentor's name; clicking Continue
   // jumps straight to whichever stage that mentor still needs — Weekly Plan
   // first for a brand-new mentor, or further along if they're resuming.
