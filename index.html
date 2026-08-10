@@ -215,6 +215,8 @@
   .cell-check{ width:34px; }
   .cell-check input{ width:15px; height:15px; accent-color:var(--green); cursor:pointer; }
   .cell-person{ display:flex; align-items:center; gap:9px; }
+  .cell-person.clickable{ cursor:pointer; }
+  .cell-person.clickable:hover .cell-person-name{ color:var(--green); text-decoration:underline; }
   .cell-avatar{
     width:26px; height:26px; border-radius:50%; flex-shrink:0;
     display:flex; align-items:center; justify-content:center; color:#fff; font-size:10px; font-weight:700;
@@ -421,6 +423,60 @@
   .modal-box p{ margin:0 0 18px; font-size:13px; color:var(--ink-soft); line-height:1.55; }
   .modal-actions{ display:flex; align-items:center; justify-content:flex-end; gap:10px; flex-wrap:wrap; }
 
+  /* ================= MENTOR SUMMARY MODAL ================= */
+  .summary-overlay{
+    position: fixed; inset:0; background: rgba(20,22,26,0.5);
+    display:flex; align-items:flex-start; justify-content:center;
+    z-index: 110; padding: 40px 20px;
+    overflow-y:auto;
+  }
+  .summary-box{
+    background: var(--card); border-radius: var(--radius); max-width: 900px; width:100%;
+    box-shadow: 0 16px 40px rgba(16,24,40,0.22);
+    margin-bottom: 40px;
+  }
+  .summary-head{
+    display:flex; align-items:center; justify-content:space-between; gap:14px;
+    padding: 20px 24px; border-bottom:1px solid var(--border);
+    position: sticky; top:0; background:var(--card); border-radius: var(--radius) var(--radius) 0 0;
+  }
+  .summary-head-left{ display:flex; align-items:center; gap:12px; min-width:0; }
+  .summary-avatar{ width:40px; height:40px; border-radius:50%; display:flex; align-items:center; justify-content:center; color:#fff; font-size:14px; font-weight:700; flex-shrink:0; }
+  .summary-head-name{ font-size:16px; font-weight:800; color:var(--ink); }
+  .summary-head-sub{ font-size:12px; color:var(--ink-faint); }
+  .summary-close{
+    width:32px; height:32px; border-radius:8px; border:1px solid var(--border); background:transparent;
+    display:flex; align-items:center; justify-content:center; cursor:pointer; color:var(--ink-soft); flex-shrink:0;
+  }
+  .summary-close:hover{ border-color:var(--ink-faint); color:var(--ink); }
+  .summary-close svg{ width:16px; height:16px; }
+  .summary-body{ padding: 20px 24px 26px; display:flex; flex-direction:column; gap:22px; }
+
+  .summary-stats-grid{ display:grid; grid-template-columns: repeat(4,1fr); gap:10px; }
+  .summary-stat{ border:1px solid var(--border); border-radius:8px; padding:10px 12px; background:#FAFAFB; }
+  .summary-stat-label{ font-size:10.5px; font-weight:600; color:var(--ink-faint); text-transform:uppercase; letter-spacing:.03em; display:block; margin-bottom:3px; }
+  .summary-stat-value{ font-size:17px; font-weight:800; color:var(--ink); }
+
+  .summary-domain{ border:1px solid var(--border); border-radius:8px; overflow:hidden; }
+  .summary-domain-head{
+    display:flex; align-items:center; justify-content:space-between; gap:10px;
+    padding:11px 14px; background:#FAFAFB; border-bottom:1px solid var(--border);
+  }
+  .summary-domain-title{ display:flex; align-items:center; gap:8px; font-size:13px; font-weight:700; color:var(--ink); }
+  .summary-domain-title svg{ width:15px; height:15px; color:var(--green); }
+  .summary-domain-count{ font-size:11.5px; color:var(--ink-faint); font-weight:600; }
+  .summary-domain-rows{ display:flex; flex-direction:column; }
+  .summary-record{
+    display:flex; align-items:center; justify-content:space-between; gap:12px;
+    padding: 10px 14px; border-bottom:1px solid var(--border); font-size:12.5px;
+  }
+  .summary-record:last-child{ border-bottom:none; }
+  .summary-record-main{ display:flex; flex-direction:column; gap:2px; min-width:0; }
+  .summary-record-title{ font-weight:600; color:var(--ink); }
+  .summary-record-sub{ color:var(--ink-faint); font-size:11.5px; }
+  .summary-record-right{ display:flex; align-items:center; gap:8px; flex-shrink:0; }
+  .summary-empty{ padding: 16px 14px; font-size:12.5px; color:var(--ink-faint); }
+
   /* ================= DASHBOARD ================= */
   .dash-wrap{ padding: 22px 26px 34px; display:flex; flex-direction:column; gap:26px; }
 
@@ -464,6 +520,8 @@
 
   .dash-lb-row{ display:flex; align-items:center; gap:10px; padding:6px 0; border-bottom:1px solid var(--border); }
   .dash-lb-row:last-child{ border-bottom:none; }
+  .dash-lb-row.clickable{ cursor:pointer; border-radius:6px; }
+  .dash-lb-row.clickable:hover{ background:#FAFAFB; }
   .dash-lb-rank{ width:16px; font-size:12px; font-weight:700; color:var(--ink-faint); text-align:center; flex-shrink:0; }
   .dash-lb-name{ font-size:12.5px; font-weight:600; flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
   .dash-lb-count{ font-size:11px; color:var(--ink-faint); flex-shrink:0; white-space:nowrap; }
@@ -486,6 +544,7 @@
     .dash-two-col{ grid-template-columns: 1fr; }
     .topnav-label{ display:none; }
     .mark-task-btn span.mtb-label{ display:none; }
+    .summary-stats-grid{ grid-template-columns: repeat(2,1fr); }
   }
 
   @media print{
@@ -507,17 +566,16 @@
       </div>
       <div class="sidebar-brand-text">
         <span class="sidebar-brand-name">CampusAudit</span>
-        <span class="sidebar-brand-sub">Mentor Review</span>
       </div>
     </div>
 
     <div>
-      <div class="sidebar-section-label">Menu</div>
-      <div class="sidebar-nav" id="sidebarNav"></div>
+
+            <div class="sidebar-nav" id="sidebarNav"></div>
     </div>
 
     <div class="sidebar-footer">
-      <div class="sidebar-footer-hint">Use <strong>Record Audit</strong> above the page title to run a mentor through the Weekly Plan → Skill Development → Academic Tasks → Attendance review flow.</div>
+      <div class="sidebar-footer-hint">Use <strong>Record Audit</strong> above the page title to run a mentor through the Weekly Plan → Skill Development → Academic Tasks → Attendance review flow. Click any mentor's name in Reports &amp; Logs to see all their records in one place.</div>
     </div>
   </aside>
 
@@ -530,9 +588,8 @@
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
           <span class="mtb-label">Record Audit</span>
         </button>
-        <div class="topbar-avatar">
-          <img src="" alt="FACE Prep Campus logo">
-        </div>
+        
+        
       </div>
     </div>
 
@@ -865,7 +922,7 @@
       <div class="entry-wrap">
         <div class="entry-card">
           <h2>Record Audit</h2>
-          <p class="entry-sub" id="mfEntrySub">Enter the mentor's name to start or continue their daily review. The flow runs in order — Weekly Plan, Skill Development, Academic Tasks, then Attendance — each step unlocking once the one before it is logged for this mentor. Internal Audit becomes available once all four are complete.</p>
+          <p class="entry-sub" id="mfEntrySub">Enter the mentor's name to start or continue their Weekly review. The flow runs in order — Weekly Plan, Skill Development, Academic Tasks, then Attendance — each step unlocking once the one before it is logged for this mentor. Internal Audit becomes available once all four are complete.</p>
 
           <div class="form-grid">
             <div class="form-field full">
@@ -896,6 +953,8 @@
     <div class="modal-actions" id="modalActions"></div>
   </div>
 </div>
+
+<div class="summary-overlay hidden" id="summaryOverlay"></div>
 
 <script>
 (function(){
@@ -1151,7 +1210,7 @@
   }
 
   function mentorCell(name){
-    return `<div class="cell-person"><div class="cell-avatar" style="background:${avatarColor(name)}">${initials(name)}</div>${escapeHtml(name)}</div>`;
+    return `<div class="cell-person clickable" data-mentor-summary="${escapeAttr(name)}"><div class="cell-avatar" style="background:${avatarColor(name)}">${initials(name)}</div><span class="cell-person-name">${escapeHtml(name)}</span></div>`;
   }
   function pillCell(status){
     const cls = STATUS_MAP[status] || "warn";
@@ -1437,6 +1496,11 @@
     }
   });
   document.getElementById("tbody").addEventListener("click", e => {
+    const mentorEl = e.target.closest("[data-mentor-summary]");
+    if(mentorEl){
+      openMentorSummary(mentorEl.dataset.mentorSummary);
+      return;
+    }
     const btn = e.target.closest(".crit-btn");
     if(!btn) return;
     const domain = btn.dataset.domain;
@@ -2034,6 +2098,132 @@
   });
   document.getElementById("adEntryReset").addEventListener("click", resetAuditEntryForm);
 
+  // ---------------- mentor summary panel ----------------
+  const SUMMARY_DOMAIN_META = {
+    weekly: { label: "Weekly Plan Submissions", tab: "weekly",
+      icon: '<rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>',
+      title(r){ return r.completed + "/" + r.planned + " tasks completed"; },
+      sub(r){ return "Completion " + r.pct + "% · " + r.date; } },
+    skill: { label: "Skill Development", tab: "skill",
+      icon: '<circle cx="12" cy="8" r="7"/><path d="M8.21 13.89 7 23l5-3 5 3-1.21-9.12"/>',
+      title(r){ return r.subject || "Untitled subject"; },
+      sub(r){ return r.date; } },
+    academic: { label: "Academic Tasks", tab: "academic",
+      icon: '<path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/><path d="m9 14 2 2 4-4"/>',
+      title(r){ return r.task + (r.subject ? " (" + r.subject + ")" : ""); },
+      sub(r){ return r.type + " · " + r.date; } },
+    attendance: { label: "Attendance", tab: "attendance",
+      icon: '<path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>',
+      title(r){ return r.attended + "/" + r.held + " classes attended"; },
+      sub(r){ return r.pct + "% · " + r.date; } },
+    audit: { label: "Internal Audit", tab: "audit",
+      icon: '<path d="m9 12 2 2 4-4"/><path d="M12 3c-2.5 2-4.5 2-7 1v7c0 5 3 8.5 7 10 4-1.5 7-5 7-10V4c-2.5 1-4.5 1-7-1Z"/>',
+      title(r){ return "Audited by " + r.auditor; },
+      sub(r){ return r.date; } }
+  };
+  const SUMMARY_DOMAIN_ORDER = ["weekly","skill","academic","attendance","audit"];
+
+  function mentorRecordsAcrossAllDomains(mentorName){
+    const n = normMentor(mentorName);
+    const out = {};
+    SUMMARY_DOMAIN_ORDER.forEach(d => { out[d] = DATA[d].filter(r => normMentor(r.mentor) === n); });
+    return out;
+  }
+
+  function closeMentorSummary(){
+    const overlay = document.getElementById("summaryOverlay");
+    overlay.classList.add("hidden");
+    overlay.innerHTML = "";
+  }
+
+  function openMentorSummary(mentorName){
+    const overlay = document.getElementById("summaryOverlay");
+    const byDomain = mentorRecordsAcrossAllDomains(mentorName);
+    const scoredDomains = ["weekly","skill","academic","attendance"];
+    const scoredRows = scoredDomains.flatMap(d => byDomain[d]);
+    const totalRecords = SUMMARY_DOMAIN_ORDER.reduce((s,d) => s + byDomain[d].length, 0);
+    const avgScore = scoredRows.length ? Math.round(scoredRows.reduce((s,r) => s + r.score, 0) / scoredRows.length) : null;
+    const flagged = scoredRows.filter(r => r.status === "Not Achieved").length
+      + byDomain.audit.filter(r => r.overall === "Not Completed").length;
+    const auditsCompleted = byDomain.audit.filter(r => r.overall === "Completed").length;
+
+    const statsHtml = `
+      <div class="summary-stats-grid">
+        <div class="summary-stat"><span class="summary-stat-label">Total Records</span><span class="summary-stat-value">${totalRecords}</span></div>
+        <div class="summary-stat"><span class="summary-stat-label">Avg. Score</span><span class="summary-stat-value" style="color:${avgScore===null ? 'var(--ink-faint)' : avgScore >= 80 ? 'var(--green-ink2)' : avgScore >= 50 ? 'var(--amber-ink)' : 'var(--red-ink)'}">${avgScore===null ? '—' : avgScore + '/100'}</span></div>
+        <div class="summary-stat"><span class="summary-stat-label">Flagged</span><span class="summary-stat-value" style="color:${flagged>0 ? 'var(--red-ink)' : 'var(--green-ink2)'}">${flagged}</span></div>
+        <div class="summary-stat"><span class="summary-stat-label">Audits Completed</span><span class="summary-stat-value" style="color:var(--green-ink2)">${auditsCompleted}</span></div>
+      </div>`;
+
+    const domainsHtml = SUMMARY_DOMAIN_ORDER.map(d => {
+      const meta = SUMMARY_DOMAIN_META[d];
+      const rows = byDomain[d];
+      const rowsHtml = rows.length === 0
+        ? `<div class="summary-empty">No ${meta.label.toLowerCase()} records for this mentor yet.</div>`
+        : rows.map(r => {
+            const statusVal = d === "audit" ? r.overall : r.status;
+            const scoreBadge = d === "audit" ? "" : `<span class="pill ${STATUS_MAP[statusVal] || 'warn'}">${r.score}/100</span>`;
+            const statusBadge = `<span class="pill ${STATUS_MAP[statusVal] || 'warn'}">${statusVal}</span>`;
+            return `<div class="summary-record">
+                <div class="summary-record-main">
+                  <span class="summary-record-title">${escapeHtml(meta.title(r))}</span>
+                  <span class="summary-record-sub">${escapeHtml(meta.sub(r))}${r.remarks ? " · " + escapeHtml(r.remarks) : (r.notes ? " · " + escapeHtml(r.notes) : "")}</span>
+                </div>
+                <div class="summary-record-right">${d === "audit" ? statusBadge : scoreBadge}</div>
+              </div>`;
+          }).join("");
+      return `<div class="summary-domain">
+          <div class="summary-domain-head">
+            <div class="summary-domain-title">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${meta.icon}</svg>
+              ${meta.label}
+            </div>
+            <div style="display:flex;align-items:center;gap:10px;">
+              <span class="summary-domain-count">${rows.length} record${rows.length===1?'':'s'}</span>
+              <button type="button" class="btn-secondary" style="padding:5px 10px;font-size:11.5px;" data-goto-domain-tab="${meta.tab}">View in Reports</button>
+            </div>
+          </div>
+          <div class="summary-domain-rows">${rowsHtml}</div>
+        </div>`;
+    }).join("");
+
+    overlay.innerHTML = `<div class="summary-box">
+        <div class="summary-head">
+          <div class="summary-head-left">
+            <div class="summary-avatar" style="background:${avatarColor(mentorName)}">${initials(mentorName)}</div>
+            <div>
+              <div class="summary-head-name">${escapeHtml(mentorName)}</div>
+              <div class="summary-head-sub">All records across every report type</div>
+            </div>
+          </div>
+          <button type="button" class="summary-close" id="summaryCloseBtn" aria-label="Close">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
+        </div>
+        <div class="summary-body">
+          ${statsHtml}
+          ${domainsHtml}
+        </div>
+      </div>`;
+
+    overlay.classList.remove("hidden");
+
+    document.getElementById("summaryCloseBtn").addEventListener("click", closeMentorSummary);
+    overlay.addEventListener("click", e => { if(e.target === overlay) closeMentorSummary(); }, { once:false });
+    overlay.querySelectorAll("[data-goto-domain-tab]").forEach(btn => {
+      btn.addEventListener("click", () => {
+        closeMentorSummary();
+        navigateTo("reports", btn.dataset.gotoDomainTab);
+      });
+    });
+  }
+  document.addEventListener("keydown", e => {
+    if(e.key === "Escape"){
+      const overlay = document.getElementById("summaryOverlay");
+      if(!overlay.classList.contains("hidden")) closeMentorSummary();
+    }
+  });
+
   // ---------------- page routing ----------------
   const PAGE_TITLES = {
     "reports": "Report & Audit Logs",
@@ -2294,7 +2484,7 @@
         <div class="dash-panel">
           ${leaderboard.length === 0 ? `<div class="recent-empty">No genuineness-scored entries yet. Add entries from Weekly Plans, Skill Development, Academic Tasks, or Attendance to see mentors ranked here.</div>` :
             leaderboard.slice(0,8).map((m,i) => `
-              <div class="dash-lb-row">
+              <div class="dash-lb-row clickable" data-mentor-summary="${escapeAttr(m.mentor)}">
                 <span class="dash-lb-rank">${i+1}</span>
                 <div class="cell-avatar" style="background:${avatarColor(m.mentor)};width:26px;height:26px;font-size:10px;">${initials(m.mentor)}</div>
                 <span class="dash-lb-name">${escapeHtml(m.mentor)}</span>
@@ -2352,6 +2542,9 @@
 
     wrap.querySelectorAll("[data-goto-tab]").forEach(el => {
       el.addEventListener("click", () => goToReportsTab(el.dataset.gotoTab));
+    });
+    wrap.querySelectorAll("[data-mentor-summary]").forEach(el => {
+      el.addEventListener("click", () => openMentorSummary(el.dataset.mentorSummary));
     });
   }
 
