@@ -308,18 +308,16 @@
     border:1px solid var(--border); border-radius:8px; padding: 11px 14px;
   }
   .criteria-row span{ font-size:12.5px; color:var(--ink); line-height:1.4; }
-  .toggle-switch{
-    width:44px; height:24px; border-radius:20px; border:none; cursor:pointer; position:relative; flex-shrink:0;
-    background: var(--red-bg); transition: background .15s ease;
-  }
-  .toggle-switch::after{
-    content:""; position:absolute; top:2px; left:2px; width:20px; height:20px; border-radius:50%;
-    background:#fff; box-shadow:0 1px 2px rgba(0,0,0,.25); transition: left .15s ease;
-  }
-  .toggle-switch.on{ background: var(--green); }
-  .toggle-switch.on::after{ left:22px; }
-  .toggle-switch:focus-visible{ outline:2px solid var(--green); outline-offset:2px; }
-
+.yn-group{ display:flex; gap:6px; flex-shrink:0; }
+.yn-btn{
+  padding:6px 16px; border-radius:7px; border:1.5px solid var(--border);
+  background:transparent; font-size:12px; font-weight:600; cursor:pointer; color:var(--ink-faint);
+  transition: background .12s ease, border-color .12s ease, color .12s ease;
+}
+.yn-btn:hover{ border-color:var(--ink-faint); color:var(--ink); }
+.yn-btn.yes.active{ background:var(--green-bg); border-color:var(--green); color:var(--green-ink2); }
+.yn-btn.no.active{ background:var(--red-bg); border-color:var(--red-ink); color:var(--red-ink); }
+.yn-btn:focus-visible{ outline:2px solid var(--green); outline-offset:1px; }
   .score-band{
     display:flex; align-items:center; justify-content:space-between; gap:12px;
     border:1px dashed var(--border-color, var(--border)); border-radius:8px; padding:12px 14px; margin-top:18px;
@@ -1267,27 +1265,33 @@
     setTimeout(() => window.print(), 300);
   });
 
-  // ---------------- generic question-grid helper ----------------
+// ---------------- generic question-grid helper ----------------
   function buildQuestionGrid(containerId, domain, answers, onChange){
     const cfg = CRITERIA_CONFIG[domain];
     const grid = document.getElementById(containerId);
     grid.innerHTML = cfg.keys.map(k => `
       <div class="criteria-row">
         <span>${cfg.questions[k]}</span>
-        <button type="button" class="toggle-switch ${answers[k] ? "on" : ""}" data-key="${k}" role="switch" aria-checked="${answers[k] ? "true" : "false"}" aria-label="${escapeAttr(cfg.questions[k])}"></button>
+        <div class="yn-group" role="group" aria-label="${escapeAttr(cfg.questions[k])}">
+          <button type="button" class="yn-btn yes ${answers[k] ? "active" : ""}" data-key="${k}" data-val="yes" aria-pressed="${answers[k] ? "true" : "false"}">Yes</button>
+          <button type="button" class="yn-btn no ${!answers[k] ? "active" : ""}" data-key="${k}" data-val="no" aria-pressed="${!answers[k] ? "true" : "false"}">No</button>
+        </div>
       </div>
     `).join("");
     grid.onclick = e => {
-      const sw = e.target.closest(".toggle-switch");
-      if(!sw) return;
-      const key = sw.dataset.key;
-      answers[key] = !answers[key];
-      sw.classList.toggle("on", answers[key]);
-      sw.setAttribute("aria-checked", answers[key] ? "true" : "false");
+      const btn = e.target.closest(".yn-btn");
+      if(!btn) return;
+      const key = btn.dataset.key;
+      const val = btn.dataset.val === "yes";
+      answers[key] = val;
+      grid.querySelectorAll(`.yn-btn[data-key="${key}"]`).forEach(b => {
+        const isActive = (b.dataset.val === "yes") === val;
+        b.classList.toggle("active", isActive);
+        b.setAttribute("aria-pressed", isActive ? "true" : "false");
+      });
       onChange();
     };
   }
-
   // ---------------- weekly plan entry page ----------------
   let wkEntryAnswers = blankAnswers("weekly");
 
