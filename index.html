@@ -36,8 +36,54 @@
     display:flex;
     min-height:100vh;
     padding: 22px;
-    gap: 0;
+    gap: 18px;
+    align-items:flex-start;
   }
+
+  /* ================= SIDEBAR ================= */
+  .sidebar{
+    width: 232px; flex-shrink:0;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    display:flex; flex-direction:column;
+    padding: 18px 14px;
+    gap: 22px;
+    position: sticky; top: 22px;
+    min-height: calc(100vh - 44px);
+  }
+  .sidebar-brand{
+    display:flex; align-items:center; gap:10px; padding: 4px 8px 2px;
+  }
+  .sidebar-brand-mark{
+    width:32px; height:32px; border-radius:9px; background:var(--green);
+    display:flex; align-items:center; justify-content:center; flex-shrink:0;
+  }
+  .sidebar-brand-mark svg{ width:17px; height:17px; color:#fff; }
+  .sidebar-brand-text{ display:flex; flex-direction:column; line-height:1.2; min-width:0; }
+  .sidebar-brand-name{ font-size:14.5px; font-weight:800; color:var(--ink); letter-spacing:-0.01em; }
+  .sidebar-brand-sub{ font-size:10.5px; font-weight:600; color:var(--ink-faint); letter-spacing:.03em; text-transform:uppercase; }
+
+  .sidebar-section-label{
+    font-size:10.5px; font-weight:700; color:var(--ink-faint); text-transform:uppercase;
+    letter-spacing:.05em; padding: 0 10px; margin-bottom:-8px;
+  }
+  .sidebar-nav{ display:flex; flex-direction:column; gap:3px; }
+  .sidebar-nav-btn{
+    display:flex; align-items:center; gap:11px; width:100%; text-align:left;
+    background:none; border:none; border-radius:8px; cursor:pointer;
+    padding: 10px 11px; font-size:13px; font-weight:600; color:var(--ink-soft);
+    transition: background .12s ease, color .12s ease;
+  }
+  .sidebar-nav-btn svg{ width:17px; height:17px; flex-shrink:0; color:var(--ink-faint); transition: color .12s ease; }
+  .sidebar-nav-btn:hover{ background:#FAFAFB; color:var(--ink); }
+  .sidebar-nav-btn:hover svg{ color:var(--ink-soft); }
+  .sidebar-nav-btn:focus-visible{ outline:2px solid var(--green); outline-offset:1px; }
+  .sidebar-nav-btn.current{ background:var(--green-tint); color:var(--green-deep); }
+  .sidebar-nav-btn.current svg{ color:var(--green); }
+
+  .sidebar-footer{ margin-top:auto; padding: 10px 10px 2px; border-top:1px solid var(--border); }
+  .sidebar-footer-hint{ font-size:11px; color:var(--ink-faint); line-height:1.5; padding-top:12px; }
 
   /* ================= MAIN ================= */
   .main{
@@ -410,7 +456,16 @@
   .dash-lb-score{ font-size:12.5px; font-weight:700; width:26px; text-align:right; flex-shrink:0; }
 
   @media (max-width: 900px){
-    .app{ padding:0; }
+    .app{ padding:0; flex-direction:column; }
+    .sidebar{
+      width:auto; flex-direction:row; align-items:center; position:static; min-height:0;
+      border-radius:0; border-left:none; border-right:none; border-top:none;
+      padding: 10px 12px; gap:10px; overflow-x:auto;
+    }
+    .sidebar-brand{ flex-shrink:0; }
+    .sidebar-section-label, .sidebar-footer{ display:none; }
+    .sidebar-nav{ flex-direction:row; }
+    .sidebar-nav-btn{ padding:8px 10px; white-space:nowrap; }
     .main{ border-radius:0; }
     .form-grid{ grid-template-columns: 1fr; }
     .dash-hero-grid{ grid-template-columns: repeat(2,1fr); }
@@ -421,7 +476,7 @@
 
   @media print{
     body{ background:#fff; }
-    .topnav-strip, .topbar-right, .tabs, .toolbar, .table-footer, .toast{ display:none !important; }
+    .sidebar, .topnav-strip, .topbar-right, .tabs, .toolbar, .table-footer, .toast{ display:none !important; }
     .app{ padding:0; }
     .main{ border:none; }
   }
@@ -429,6 +484,28 @@
 </head>
 <body>
 <div class="app">
+
+  <!-- ================= SIDEBAR ================= -->
+  <aside class="sidebar">
+    <div class="sidebar-brand">
+      <div class="sidebar-brand-mark">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 12 2 2 4-4"/><path d="M12 3c-2.5 2-4.5 2-7 1v7c0 5 3 8.5 7 10 4-1.5 7-5 7-10V4c-2.5 1-4.5 1-7-1Z"/></svg>
+      </div>
+      <div class="sidebar-brand-text">
+        <span class="sidebar-brand-name">CampusAudit</span>
+        <span class="sidebar-brand-sub">Mentor Review</span>
+      </div>
+    </div>
+
+    <div>
+      <div class="sidebar-section-label">Menu</div>
+      <div class="sidebar-nav" id="sidebarNav"></div>
+    </div>
+
+    <div class="sidebar-footer">
+      <div class="sidebar-footer-hint">Use <strong>Mark Task</strong> above the page title to run a mentor through the Weekly Plan → Skill Development → Academic Tasks → Attendance review flow.</div>
+    </div>
+  </aside>
 
   <!-- ================= MAIN ================= -->
   <main class="main">
@@ -444,8 +521,6 @@
         </div>
       </div>
     </div>
-
-    <div class="topnav-strip" id="topNavStrip"></div>
 
     <div id="page-reports" class="hidden">
       <div class="tabs" id="tabs">
@@ -767,6 +842,25 @@
         <div class="recent-entries">
           <h3>Recently audited (this session)</h3>
           <div class="recent-list" id="adEntryRecent"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ================= MARK TASK — FLOW OVERVIEW ================= -->
+    <div id="page-mark-flow" class="hidden">
+      <div class="entry-wrap">
+        <div class="entry-card">
+          <h2>Mark Task</h2>
+          <p class="entry-sub">Enter the mentor's name to start or continue their daily review. The flow runs in order — Weekly Plan, Skill Development, Academic Tasks, then Attendance — each step unlocking once the one before it is logged for this mentor. Internal Audit becomes available once all four are complete.</p>
+
+          <div class="form-grid">
+            <div class="form-field full">
+              <label for="mfEntryMentor">Mentor Name</label>
+              <input type="text" id="mfEntryMentor" placeholder="Enter mentor name to start or continue their review flow">
+            </div>
+          </div>
+
+          <div id="mfFlowStrip"></div>
         </div>
       </div>
     </div>
@@ -1835,6 +1929,7 @@
   // ---------------- page routing ----------------
   const PAGE_TITLES = {
     "reports": "Report & Audit Logs",
+    "mark-flow": "Mark Task",
     "weekly-entry": "Weekly Plan Entry",
     "skill-entry": "Skill Development Entry",
     "academic-entry": "Academic Task Entry",
@@ -1842,36 +1937,35 @@
     "audit-entry": "Internal Audit Entry",
     "dashboard": "Dashboard"
   };
-  const PAGE_IDS = ["reports","weekly-entry","skill-entry","academic-entry","attendance-entry","audit-entry","dashboard"];
+  const PAGE_IDS = ["reports","mark-flow","weekly-entry","skill-entry","academic-entry","attendance-entry","audit-entry","dashboard"];
 
-  // Top navigation is intentionally simple: Dashboard and Reports & Logs are
-  // the two standalone destinations, kept separate from the marking flow.
-  // The mentor review flow (Weekly Plan -> Skill Dev -> Academic -> Attendance
-  // -> Internal Audit) only opens when "Mark Task" is clicked, or via the flow
-  // strip inside an entry page once that flow has been started.
-  const TOP_NAV = [
-    { page: "dashboard", label: "Dashboard" },
-    { page: "reports",   label: "Reports & Logs", tab: "weekly" }
+  // Sidebar navigation holds the two standalone destinations, Dashboard and
+  // Reports & Logs. The mentor review flow (Weekly Plan -> Skill Dev ->
+  // Academic -> Attendance -> Internal Audit) is a separate track: it only
+  // opens when "Mark Task" is clicked, landing on a flow overview that shows
+  // all four stages (plus Internal Audit once they're done) and lets you jump
+  // into any of them, or via the flow strip inside an entry page once that
+  // flow has been started.
+  const SIDEBAR_NAV = [
+    { page: "dashboard", label: "Dashboard",
+      icon: '<rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/>' },
+    { page: "reports",   label: "Reports & Logs", tab: "weekly",
+      icon: '<path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="8" y1="16" x2="13" y2="16"/>' }
   ];
   const ENTRY_PAGES = ["weekly-entry","skill-entry","academic-entry","attendance-entry","audit-entry"];
-  const ENTRY_PAGES_SET = new Set(ENTRY_PAGES);
   let currentPage = "dashboard";
 
-  function renderTopNav(){
-    const el = document.getElementById("topNavStrip");
+  function renderSidebarNav(){
+    const el = document.getElementById("sidebarNav");
     if(!el) return;
-    el.innerHTML = TOP_NAV.map((item,i) => {
-      const isCurrent = item.page === currentPage || (item.page === "reports" && ENTRY_PAGES_SET.has(currentPage));
-      const isLast = i === TOP_NAV.length - 1;
-      return `<div class="topnav-step ${isCurrent ? "current" : ""}">
-          <button type="button" class="topnav-btn" data-page="${item.page}" ${item.tab ? `data-tab="${item.tab}"` : ""}>
-            <span class="topnav-node">${i+1}</span>
-            <span class="topnav-label">${item.label}</span>
-          </button>
-          ${isLast ? "" : `<div class="topnav-line"></div>`}
-        </div>`;
+    el.innerHTML = SIDEBAR_NAV.map(item => {
+      const isCurrent = item.page === currentPage;
+      return `<button type="button" class="sidebar-nav-btn ${isCurrent ? "current" : ""}" data-page="${item.page}" ${item.tab ? `data-tab="${item.tab}"` : ""}>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${item.icon}</svg>
+          <span>${item.label}</span>
+        </button>`;
     }).join("");
-    el.querySelectorAll(".topnav-btn").forEach(btn => {
+    el.querySelectorAll(".sidebar-nav-btn").forEach(btn => {
       btn.addEventListener("click", () => navigateTo(btn.dataset.page, btn.dataset.tab));
     });
   }
@@ -1883,7 +1977,7 @@
     });
     document.getElementById("topbarTitle").textContent = PAGE_TITLES[page] || "CampusAudit";
     currentPage = page;
-    renderTopNav();
+    renderSidebarNav();
   }
 
   function navigateTo(page, tab){
@@ -1895,6 +1989,11 @@
     if(page === "dashboard"){
       showPage("dashboard");
       renderDashboard();
+      return;
+    }
+    if(page === "mark-flow"){
+      showPage("mark-flow");
+      renderFlowStrip("mfFlowStrip", document.getElementById("mfEntryMentor").value, "audit");
       return;
     }
     if(ENTRY_PAGES.includes(page)){
@@ -1909,11 +2008,20 @@
     }
   }
 
-  // "Mark Task" is the single entry point into the review flow — clicking it
-  // starts fresh at step 1 (Weekly Plan), separate from Dashboard/Reports.
+  // "Mark Task" is the single entry point into the review flow. Clicking it
+  // opens a flow overview showing all four stages — Weekly Plan, Skill
+  // Development, Academic Tasks, Attendance — for the mentor you type in,
+  // so you can jump straight to whichever stage they need next.
+  function resetMarkFlowForm(){
+    document.getElementById("mfEntryMentor").value = "";
+    renderFlowStrip("mfFlowStrip", "", "audit");
+  }
+  document.getElementById("mfEntryMentor").addEventListener("input", e => {
+    renderFlowStrip("mfFlowStrip", e.target.value, "audit");
+  });
   document.getElementById("markTaskBtn").addEventListener("click", () => {
-    resetWeeklyEntryForm();
-    navigateTo("weekly-entry");
+    resetMarkFlowForm();
+    navigateTo("mark-flow");
   });
 
   // ---------------- dashboard ----------------
@@ -2133,7 +2241,8 @@
   populateAcademicEntryStatics(); updateAcademicScore(); renderRecentAcademic();
   populateAttendanceEntryStatics(); updateAttendanceScore(); renderRecentAttendance();
   populateAuditEntryStatics(); updateAuditEntryOverall(); renderRecentAudits();
-  renderTopNav();
+  resetMarkFlowForm();
+  renderSidebarNav();
   navigateTo("dashboard");
 })();
 </script>
