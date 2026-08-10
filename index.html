@@ -284,6 +284,15 @@
     border:1px solid var(--border); border-radius:8px; padding: 9px 11px;
     font-size:13px; color:var(--ink); background:transparent; width:100%;
   }
+  .form-field input[readonly]{
+  background: #FAFAFB;
+  color: var(--ink-faint);
+  cursor: not-allowed;
+  pointer-events: none;
+}
+.form-field label .lock-note{
+  font-weight:500; color:var(--ink-faint); font-size:11px; margin-left:4px;
+}
   .form-field textarea{ resize:vertical; }
   .form-field input:focus-visible, .form-field select:focus-visible, .form-field textarea:focus-visible{ outline:2px solid var(--green); outline-offset:1px; }
 
@@ -520,8 +529,8 @@
               <input type="text" id="wkEntryMentor" placeholder="Enter mentor name">
             </div>
             <div class="form-field">
-              <label for="wkEntryDate">Date of Marking</label>
-              <input type="date" id="wkEntryDate">
+<label for="wkEntryDate">Date of Marking <span class="lock-note">(auto-set, cannot be edited)</span></label>\
+              <input type="date" id="wkEntryDate" readonly tabindex="-1">
             </div>
             <div class="form-field">
               <label for="wkEntryPlanned">Planned Tasks</label>
@@ -576,7 +585,7 @@
             </div>
             <div class="form-field">
               <label for="skEntryDate">Date of Marking</label>
-              <input type="date" id="skEntryDate">
+<input type="date" id="skEntryDate" readonly tabindex="-1">
             </div>
             <div class="form-field full">
               <label for="skEntrySubject">Skill Development Subject</label>
@@ -627,7 +636,7 @@
             </div>
             <div class="form-field">
               <label for="acEntryDate">Date of Marking</label>
-              <input type="date" id="acEntryDate">
+<input type="date" id="acEntryDate" readonly tabindex="-1">
             </div>
             <div class="form-field full">
               <label for="acEntrySubject">Academic Subject</label>
@@ -689,7 +698,7 @@
             </div>
             <div class="form-field">
               <label for="atEntryDate">Date of Marking</label>
-              <input type="date" id="atEntryDate">
+<input type="date" id="atEntryDate" readonly tabindex="-1">
             </div>
             <div class="form-field">
               <label for="atEntryHeld">Classes Held</label>
@@ -744,7 +753,7 @@
             </div>
             <div class="form-field">
               <label for="adEntryDate">Date of Audit</label>
-              <input type="date" id="adEntryDate">
+<input type="date" id="adEntryDate" readonly tabindex="-1">
             </div>
             <div class="form-field full">
               <label for="adEntryAuditor">Auditor (Reviewing Campus Manager)</label>
